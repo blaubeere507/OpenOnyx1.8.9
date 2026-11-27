@@ -1,0 +1,65 @@
+package client.onyx.account;
+
+import client.onyx.util.IMinecraft;
+import client.onyx.util.Workers;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.client.resources.SkinManager.SkinAvailableCallback;
+import net.minecraft.util.ResourceLocation;
+
+public final class AccountHeads implements IMinecraft {
+    private static final Map<UUID, ResourceLocation> map2 = new ConcurrentHashMap<>();
+    private static final Map<UUID, Boolean> map = new ConcurrentHashMap<>();
+
+    public static void method_1820(UUID var0) {
+        if (var0 != null) {
+            map2.remove(var0);
+            map.remove(var0);
+        }
+    }
+
+    public static ResourceLocation method_1821(UUID var0, String var1) {
+        if (var0 == null) {
+            return DefaultPlayerSkin.getDefaultSkinLegacy();
+        } else {
+            ResourceLocation var3;
+            if ((var3 = map2.get(var0)) != null) {
+                return var3;
+            } else {
+                method_1822(var0, var1);
+                return DefaultPlayerSkin.getDefaultSkin(var0);
+            }
+        }
+    }
+
+    private AccountHeads() {
+    }
+
+    private static void method_1822(UUID var0, String var1) {
+        if (map.putIfAbsent(var0, Boolean.TRUE) == null) {
+            Workers.method_1936(() -> {
+                UUID var5 = var0;
+                GameProfile var4 = new GameProfile(var5, var1);
+
+                try {
+                    mc.getSessionService().fillProfileProperties(var4, false);
+                } catch (RuntimeException var2) {
+                }
+
+                mc.addScheduledTask(() -> mc.getSkinManager().loadProfileTextures(var4, new SkinAvailableCallback() {
+                    @Override
+                    public void skinAvailable(Type var1x, ResourceLocation var2, MinecraftProfileTexture var3) {
+                        if (var1x == Type.SKIN) {
+                            AccountHeads.map2.put(var1, var2);
+                        }
+                    }
+                }, false));
+            });
+        }
+    }
+}

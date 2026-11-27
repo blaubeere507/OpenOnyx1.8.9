@@ -1,0 +1,556 @@
+package client.onyx.ui.screen;
+
+import client.onyx.Onyx;
+import client.onyx.module.render.ESP;
+import client.onyx.render.anim.Animation;
+import client.onyx.render.anim.Easings;
+import client.onyx.render.ui.UiRenderer;
+import client.onyx.setting.impl.BooleanSetting;
+import client.onyx.setting.impl.NumberSetting;
+import client.onyx.ui.component.Button;
+import client.onyx.ui.component.RenderContext;
+import client.onyx.ui.theme.Theme;
+import client.onyx.ui.theme.Typography;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiInventory;
+
+public class EspLayoutEditorScreen extends GuiScreen {
+    private static final float FLOAT_3_01 = 3.0F;
+    private static final float FLOAT_16_01 = 16.0F;
+    private static final int INT_21 = 2;
+    private static final int INT_01 = 0;
+    private static final float FLOAT_16_02 = 16.0F;
+    private static final float FLOAT_100_01 = 100.0F;
+    private static final int INT_11 = 1;
+    private final ESP esp;
+    private final UiRenderer uiRenderer;
+    private final Button button;
+    private final Button button2;
+    private final Button button3;
+    private int intValue;
+    private final Animation animation4;
+    private final Animation animation;
+    private final Animation animation3;
+    private final Animation animation2;
+    private final GuiScreen guiScreen;
+    private float floatValue;
+    private float floatValue2;
+    private long longValue;
+    private float[] floatValueArray;
+    private float floatValue3;
+    private float floatValue4;
+    private float floatValue5;
+    private float[] floatValueArray2;
+    private float floatValue6;
+    private float floatValue7;
+    private boolean flag;
+
+    @Override
+    public boolean doesGuiPauseGame() {
+        return false;
+    }
+
+    private void method_2324(float[] var1, boolean var2, String var3) {
+        int var5;
+        if (var2) {
+            var5 = Theme.getPalette().intValue31();
+        } else {
+            var5 = Theme.method_180(Theme.getPalette().intValue15(), 0.4F);
+        }
+
+        float var10001 = var1[0] - 3.0F;
+        float var10002 = var1[1] - 3.0F;
+        float var10003 = var1[2] + 6.0F;
+        float var10004 = var1[3] + 6.0F;
+        UiRenderer var12;
+        float var13;
+        float var14;
+        float var15;
+        float var16;
+        float var17;
+        float var18;
+        int var19;
+        if (!var2) {
+            float var11 = 8.0F;
+            float var10 = var10004;
+            float var9 = var10003;
+            float var8 = var10002;
+            float var7 = var10001;
+            UiRenderer var6 = this.uiRenderer;
+            var19 = var5;
+            var18 = 1.0F;
+            var17 = var11;
+            var16 = var10;
+            var15 = var9;
+            var14 = var8;
+            var13 = var7;
+            var12 = var6;
+        } else {
+            var19 = var5;
+            var18 = 1.5F;
+            var17 = 8.0F;
+            var16 = var10004;
+            var15 = var10003;
+            var14 = var10002;
+            var13 = var10001;
+            var12 = this.uiRenderer;
+        }
+
+        var12.method_494(var13, var14, var15, var16, var17, var18, var19);
+        if (var2) {
+            this.uiRenderer.method_446(Typography.fontStyle2, var3, var1[0] + var1[2] / 2.0F, var1[1] - 3.0F - 3.0F - Typography.fontStyle2.floatValue(), var5);
+        }
+    }
+
+    private void method_2325(int var1, int var2) {
+        float var7 = this.esp.method_1130(this.floatValue5);
+        List var10;
+        List var14;
+        if ((var14 = this.esp.method_1126(this.mc.thePlayer)).isEmpty()) {
+            var10 = this.esp.method_1118();
+        } else {
+            var10 = var14;
+        }
+
+        ESP.LayoutSlot var15 = null;
+        ESP.LayoutSlot var6 = null;
+        float var3 = this.floatValue3 + this.floatValue2 / 2.0F;
+        Iterator var16 = this.esp
+            .method_1121(this.uiRenderer, this.mc.thePlayer, this.floatValue3, this.floatValue6, this.floatValue2, this.floatValue5, var3, var3, true)
+            .iterator();
+
+        while (var16.hasNext()) {
+            ESP.LayoutSlot var8;
+            if ((var8 = (ESP.LayoutSlot)var16.next()).intValue() != 0) {
+                var6 = var8;
+            } else {
+                var15 = var8;
+            }
+        }
+
+        this.floatValueArray2 = this.floatValueArray = null;
+        if (var15 != null) {
+            boolean var12;
+            if (this.flag && (!this.esp.freeLayout.method_146() || this.intValue != 1)) {
+                var12 = false;
+            } else {
+                var12 = true;
+            }
+
+            float var17 = this.method_2326(this.animation4, var15.floatValue(), var12);
+            float var9 = this.method_2326(this.animation, var15.floatValue4(), var12);
+            this.esp.method_1127(this.uiRenderer, this.mc.thePlayer, var17, var9, var7);
+            this.floatValueArray = new float[]{var17 - var15.floatValue3() / 2.0F, var9 - var15.floatValue2() / 2.0F, var15.floatValue3(), var15.floatValue2()};
+        }
+
+        if (var6 != null) {
+            boolean var13;
+            if (this.flag && (!this.esp.freeLayout.method_146() || this.intValue != 2)) {
+                var13 = false;
+            } else {
+                var13 = true;
+            }
+
+            float var18 = this.method_2326(this.animation3, var6.floatValue(), var13);
+            float var19 = this.method_2326(this.animation2, var6.floatValue4(), var13);
+            this.esp.method_1137(this.uiRenderer, this.mc.thePlayer, var18, var19, var7, var10, var6.flag());
+            this.floatValueArray2 = new float[]{var18 - var6.floatValue3() / 2.0F, var19 - var6.floatValue2() / 2.0F, var6.floatValue3(), var6.floatValue2()};
+        }
+
+        this.flag = true;
+        if (this.floatValueArray != null) {
+            this.method_2324(this.floatValueArray, this.method_2329(1, this.floatValueArray, var1, var2), "Name");
+        }
+
+        if (this.floatValueArray2 != null) {
+            this.method_2324(this.floatValueArray2, this.method_2329(2, this.floatValueArray2, var1, var2), "Equipment");
+        }
+
+        if (this.intValue != 0 && !this.esp.freeLayout.method_146()) {
+            this.method_2341();
+        }
+    }
+
+    public EspLayoutEditorScreen(GuiScreen var1) {
+        this.esp = Onyx.moduleManager.esp;
+        this.uiRenderer = new UiRenderer();
+        this.button = new Button(Button.Variant.OUTLINED, "Reset", () -> {
+            this.esp.nameZone.reset();
+            this.esp.equipmentZone.reset();
+            this.esp.nameFreeX.reset();
+            this.esp.nameFreeY.reset();
+            this.esp.equipmentFreeX.reset();
+            this.esp.equipmentFreeY.reset();
+            this.esp.equipmentFirst.setValue(false);
+            this.esp.freeLayout.setValue(false);
+            this.button2.method_2463("Unlock");
+        });
+        this.button2 = new Button(Button.Variant.TONAL, "Unlock", () -> {
+            this.esp.freeLayout.method_145();
+            Button var10000 = this.button2;
+            Button var2;
+            String var3;
+            if (!this.esp.freeLayout.method_146()) {
+                Button var1x = var10000;
+                var3 = "Unlock";
+                var2 = var1x;
+            } else {
+                var3 = "Snap to slots";
+                var2 = var10000;
+            }
+
+            var2.method_2463(var3);
+        });
+        this.button3 = new Button(Button.Variant.FILLED, "Done", this::method_2337);
+        this.intValue = 0;
+        this.animation4 = new Animation(0.0F);
+        this.animation = new Animation(0.0F);
+        this.animation3 = new Animation(0.0F);
+        this.animation2 = new Animation(0.0F);
+        this.guiScreen = var1;
+    }
+
+    private float method_2326(Animation var1, float var2, boolean var3) {
+        Animation var5;
+        if (!var3) {
+            if (Math.abs(var1.getFloatValue3() - var2) > 0.01F) {
+                var1.method_603(var2, 200.0F, Easings.easing2);
+            }
+
+            var5 = var1;
+        } else {
+            var1.method_607(var2);
+            var5 = var1;
+        }
+
+        var5.method_605(this.floatValue);
+        return var1.method_606();
+    }
+
+    private int method_2327(float var1, float var2) {
+        float var3 = this.floatValue3 + this.floatValue2 / 2.0F;
+        float var4 = this.floatValue6 + this.floatValue5 / 2.0F;
+        float var6 = (var1 - var3) / (this.floatValue2 / 2.0F + 1.0F);
+        if (Math.abs(var2 = (var2 - var4) / (this.floatValue5 / 2.0F + 1.0F)) >= Math.abs(var6)) {
+            return var2 < 0.0F ? 0 : 3;
+        } else {
+            return var6 < 0.0F ? 1 : 2;
+        }
+    }
+
+    private void method_2328(int var1, float[] var2, float var3, float var4) {
+        this.intValue = var1;
+        this.floatValue4 = var3 - (var2[0] + var2[2] / 2.0F);
+        this.floatValue7 = var4 - (var2[1] + var2[3] / 2.0F);
+    }
+
+    private boolean method_2329(int var1, float[] var2, int var3, int var4) {
+        return this.intValue == var1 || this.intValue == 0 && method_2339(var2, var3, var4);
+    }
+
+    @Override
+    public void mouseClickMove(int var1, int var2, int var3, long var4) {
+        if (this.intValue != 0) {
+            this.method_2331(var1, var2);
+        } else {
+            super.mouseClickMove(var1, var2, var3, var4);
+        }
+    }
+
+    private void method_2330(int var1, int var2) {
+        this.uiRenderer.method_446(Typography.fontStyle14, "ESP layout", this.width / 2.0F, 22.0F, Theme.getPalette().intValue15());
+        this.uiRenderer
+            .method_446(
+                Typography.fontStyle2,
+                "Drag the name and equipment around the player",
+                this.width / 2.0F,
+                44.0F,
+                Theme.method_180(Theme.getPalette().intValue7(), 0.85F)
+            );
+        RenderContext var4 = new RenderContext(this.uiRenderer, this.floatValue, var1, var2);
+        this.button.method_2206(var4);
+        this.button2.method_2206(var4);
+        this.button3.method_2206(var4);
+        this.button.method_2186(var4);
+        this.button2.method_2186(var4);
+        this.button3.method_2186(var4);
+    }
+
+    private void method_2331(float var1, float var2) {
+        if (!(this.floatValue2 <= 0.0F) && !(this.floatValue5 <= 0.0F)) {
+            if (this.esp.freeLayout.method_146()) {
+                float var11 = this.floatValue3 + this.floatValue2 / 2.0F;
+                float var3 = this.floatValue6 + this.floatValue5 / 2.0F;
+                NumberSetting var7;
+                if (this.intValue == 1) {
+                    var7 = this.esp.nameFreeX;
+                } else {
+                    var7 = this.esp.equipmentFreeX;
+                }
+
+                NumberSetting var8;
+                if (this.intValue == 1) {
+                    var8 = this.esp.nameFreeY;
+                } else {
+                    var8 = this.esp.equipmentFreeY;
+                }
+
+                var7.setValue((double)((var1 - this.floatValue4 - var11) / this.floatValue5));
+                var8.setValue((double)((var2 - this.floatValue7 - var3) / this.floatValue5));
+            } else {
+                int var10 = this.method_2327(var1, var2);
+                NumberSetting var9;
+                if (this.intValue == 1) {
+                    var9 = this.esp.nameZone;
+                } else {
+                    var9 = this.esp.equipmentZone;
+                }
+
+                var9.setValue((double)var10);
+                this.method_2332(var10, var2);
+            }
+        }
+    }
+
+    private void method_2332(int var1, float var2) {
+        if (this.esp.names.method_146() && this.esp.equipment.method_146()) {
+            NumberSetting var3;
+            if (this.intValue == 1) {
+                var3 = this.esp.equipmentZone;
+            } else {
+                var3 = this.esp.nameZone;
+            }
+
+            if (var3.method_149() == var1) {
+                float[] var4;
+                if (this.intValue == 1) {
+                    var4 = this.floatValueArray2;
+                } else {
+                    var4 = this.floatValueArray;
+                }
+
+                if (var4 != null) {
+                    float var11 = var4[1] + var4[3] / 2.0F;
+                    boolean var5;
+                    if (var2 - this.floatValue7 < var11) {
+                        var5 = true;
+                    } else {
+                        var5 = false;
+                    }
+
+                    boolean var6;
+                    if (this.intValue == 1) {
+                        var6 = var5;
+                    } else if (!var5) {
+                        var6 = true;
+                    } else {
+                        var6 = false;
+                    }
+
+                    BooleanSetting var8;
+                    boolean var9;
+                    if (var6) {
+                        BooleanSetting var7 = this.esp.equipmentFirst;
+                        var9 = false;
+                        var8 = var7;
+                    } else {
+                        var9 = true;
+                        var8 = this.esp.equipmentFirst;
+                    }
+
+                    var8.setValue(var9);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void initGui() {
+        this.longValue = 0L;
+        Button var10000 = this.button2;
+        Button var2;
+        String var3;
+        if (!this.esp.freeLayout.method_146()) {
+            Button var1 = var10000;
+            var3 = "Unlock";
+            var2 = var1;
+        } else {
+            var3 = "Snap to slots";
+            var2 = var10000;
+        }
+
+        var2.method_2463(var3);
+    }
+
+    private void method_2333() {
+        this.uiRenderer.method_483();
+        GuiInventory.drawEntityOnScreen(
+            this.width / 2, (int)(this.floatValue6 + this.floatValue5), (int)(this.floatValue5 * 0.5F), 0.0F, 0.0F, this.mc.thePlayer
+        );
+        this.uiRenderer.method_468();
+    }
+
+    private boolean method_2334(float var1, float var2) {
+        if (this.floatValueArray != null && method_2339(this.floatValueArray, var1, var2)) {
+            this.method_2328(1, this.floatValueArray, var1, var2);
+            return true;
+        } else if (this.floatValueArray2 != null && method_2339(this.floatValueArray2, var1, var2)) {
+            this.method_2328(2, this.floatValueArray2, var1, var2);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void method_2335() {
+        float var5 = 118.0F;
+        float var2 = 10.0F;
+        float var3 = var5 * 3.0F + var2 * 2.0F;
+        var3 = this.width / 2.0F - var3 / 2.0F;
+        float var4 = this.height - 46.0F;
+        this.button.method_2258(var3, var4, var5, 30.0F);
+        this.button2.method_2258(var3 + var5 + var2, var4, var5, 30.0F);
+        this.button3.method_2258(var3 + (var5 + var2) * 2.0F, var4, var5, 30.0F);
+    }
+
+    private void method_2336() {
+        float var2 = this.mc.thePlayer.width / this.mc.thePlayer.height;
+        this.floatValue5 = this.height * 0.5F;
+        this.floatValue6 = this.height / 2.0F - this.floatValue5 / 2.0F;
+        this.floatValue2 = this.floatValue5 * var2;
+        this.floatValue3 = this.width / 2.0F - this.floatValue2 / 2.0F;
+    }
+
+    @Override
+    public void mouseReleased(int var1, int var2, int var3) {
+        this.intValue = 0;
+        this.button.method_2189(var1, var2, var3);
+        this.button2.method_2189(var1, var2, var3);
+        this.button3.method_2189(var1, var2, var3);
+        super.mouseReleased(var1, var2, var3);
+    }
+
+    @Override
+    public void keyTyped(char var1, int var2) throws IOException {
+        if (var2 == 1) {
+            this.method_2337();
+        } else {
+            super.keyTyped(var1, var2);
+        }
+    }
+
+    private void method_2337() {
+        this.mc.displayGuiScreen(this.guiScreen);
+    }
+
+    private float method_2338() {
+        long var1 = System.nanoTime();
+        if (this.longValue == 0L) {
+            this.longValue = var1;
+            return 16.0F;
+        } else {
+            float var10000 = (float)(var1 - this.longValue) / 1000000.0F;
+            this.longValue = var1;
+            return Math.min(var10000, 100.0F);
+        }
+    }
+
+    @Override
+    public void drawScreen(int var1, int var2, float var3) {
+        this.floatValue = this.method_2338();
+        this.method_2335();
+        this.uiRenderer.method_468();
+        EspLayoutEditorScreen var5;
+        if (this.mc.theWorld == null) {
+            this.uiRenderer.method_492(0.0F, 0.0F, this.width, this.height);
+            var5 = this;
+        } else {
+            this.uiRenderer.method_434(0.0F, 0.0F, this.width, this.height, Theme.method_176(0.55F));
+            var5 = this;
+        }
+
+        if (var5.mc.thePlayer != null) {
+            this.method_2336();
+            this.method_2333();
+            this.method_2325(var1, var2);
+        }
+
+        this.method_2330(var1, var2);
+        this.uiRenderer.method_483();
+    }
+
+    private static boolean method_2339(float[] var0, float var1, float var2) {
+        return var1 >= var0[0] && var1 <= var0[0] + var0[2] && var2 >= var0[1] && var2 <= var0[1] + var0[3];
+    }
+
+    private void method_2340(int var1, int var2, float var3, float var4) {
+        boolean var5;
+        if (var1 == var2) {
+            var5 = true;
+        } else {
+            var5 = false;
+        }
+
+        int var6;
+        if (var5) {
+            var6 = Theme.getPalette().intValue31();
+        } else {
+            var6 = Theme.method_180(Theme.getPalette().intValue15(), 0.3F);
+        }
+
+        UiRenderer var10;
+        float var11;
+        float var12;
+        float var13;
+        int var14;
+        if (!var5) {
+            UiRenderer var7 = this.uiRenderer;
+            var14 = var6;
+            var13 = 2.5F;
+            var12 = var4;
+            var11 = var3;
+            var10 = var7;
+        } else {
+            var14 = var6;
+            var13 = 4.0F;
+            var12 = var4;
+            var11 = var3;
+            var10 = this.uiRenderer;
+        }
+
+        var10.method_489(var11, var12, var13, var14);
+    }
+
+    @Override
+    public void mouseClicked(int var1, int var2, int var3) throws IOException {
+        if (var3 != 0 || !this.method_2334(var1, var2)) {
+            if (!this.button.method_2183(var1, var2, var3)) {
+                if (!this.button2.method_2183(var1, var2, var3)) {
+                    if (!this.button3.method_2183(var1, var2, var3)) {
+                        super.mouseClicked(var1, var2, var3);
+                    }
+                }
+            }
+        }
+    }
+
+    private void method_2341() {
+        NumberSetting var4;
+        if (this.intValue == 1) {
+            var4 = this.esp.nameZone;
+        } else {
+            var4 = this.esp.equipmentZone;
+        }
+
+        int var5 = var4.method_149();
+        float var2 = this.floatValue3 + this.floatValue2 / 2.0F;
+        float var3 = this.floatValue6 + this.floatValue5 / 2.0F;
+        this.method_2340(0, var5, var2, this.floatValue6 - 16.0F);
+        this.method_2340(3, var5, var2, this.floatValue6 + this.floatValue5 + 16.0F);
+        this.method_2340(1, var5, this.floatValue3 - 16.0F, var3);
+        this.method_2340(2, var5, this.floatValue3 + this.floatValue2 + 16.0F, var3);
+    }
+}

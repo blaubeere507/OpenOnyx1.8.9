@@ -1,2 +1,12 @@
-# Auto detect text files and perform LF normalization
 * text=auto
+*.java text eol=lf
+*.gradle text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.tiny text eol=lf
+*.csv text eol=lf
+*.orig text eol=lf
+gradlew text eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.jar binary

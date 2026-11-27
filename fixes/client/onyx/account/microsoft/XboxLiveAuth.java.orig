@@ -1,0 +1,404 @@
+package client.onyx.account.microsoft;
+
+import client.onyx.Onyx;
+import com.google.gson.JsonObject;
+import java.util.UUID;
+
+public final class XboxLiveAuth {
+    private static final long LONG_21489162381 = 2148916238L;
+    private static final int INT_4011 = 401;
+    private static final String STRING_CONST = "{\"Properties\":{\"SandboxId\":\"RETAIL\",\"UserTokens\":[\"%s\"]},\"RelyingParty\":\"rp://api.minecraftservices.com/\",\"TokenType\":\"JWT\"}";
+    private static final String STRING_CONST2 = "{\"Properties\":{\"AuthMethod\":\"RPS\",\"SiteName\":\"user.auth.xboxlive.com\",\"RpsTicket\":\"%s\"},\"RelyingParty\":\"http://auth.xboxlive.com\",\"TokenType\":\"JWT\"}";
+    private static final String STRING_CONST3 = "https://user.auth.xboxlive.com/user/authenticate";
+    private static final long LONG_21489162351 = 2148916235L;
+    private static final int INT_4031 = 403;
+    private static final String STRING_CONST4 = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
+    public static final String STRING_CONST5 = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb";
+    private static final long LONG_21489162331 = 2148916233L;
+    private static final String STRING_CONST6 = "{\"identityToken\":\"XBL3.0 x=%s;%s\"}";
+    private static final int INT_5001 = 500;
+    private static final String STRING_CONST7 = "https://api.minecraftservices.com/minecraft/profile";
+    private static final int INT_4291 = 429;
+    private static final String STRING_CONST8 = "https://xsts.auth.xboxlive.com/xsts/authorize";
+    private static final String STRING_CONST9 = "https://api.minecraftservices.com/authentication/login_with_xbox";
+
+    private XboxLiveAuth() {
+    }
+
+    private static AuthException method_1869(Http.Response var0) {
+        long var1;
+        long var3;
+        label24: {
+            try {
+                var1 = Http.method_1866(var0.method_1845(), "XErr", 0L);
+            } catch (AuthException var5) {
+                var1 = 0L;
+                var3 = 0L;
+                break label24;
+            }
+
+            var3 = var1;
+        }
+
+        if (var3 == 2148916233L) {
+            return new AuthException("This Microsoft account has no Xbox profile");
+        } else if (var1 == 2148916235L) {
+            return new AuthException("Xbox Live is unavailable in this region");
+        } else {
+            return var1 == 2148916238L
+                ? new AuthException("Child account — must be added to a Microsoft family")
+                : new AuthException(new StringBuilder().insert(0, "Xbox Live security check failed (").append(var0.intValue()).append(")").toString());
+        }
+    }
+
+    public static boolean method_1870() {
+        return XboxLiveAuth.ClientFlavour.AZURE.method_1867();
+    }
+
+    public static XboxLiveAuth.MinecraftToken method_1871(String var0, String var1) throws AuthException {
+        method_1876(XboxLiveAuth.ClientFlavour.AZURE);
+        return method_1875(
+            new StringBuilder()
+                .insert(0, "client_id=")
+                .append(Http.method_1857(XboxLiveAuth.ClientFlavour.AZURE.getString5()))
+                .append("&redirect_uri=")
+                .append(Http.method_1857(var1))
+                .append("&scope=")
+                .append(Http.method_1857(XboxLiveAuth.ClientFlavour.AZURE.getString2()))
+                .append("&grant_type=authorization_code&code=")
+                .append(Http.method_1857(var0))
+                .toString(),
+            XboxLiveAuth.ClientFlavour.AZURE
+        );
+    }
+
+    public static XboxLiveAuth.MinecraftToken method_1872(String var0, XboxLiveAuth.ClientFlavour var1) throws AuthException {
+        method_1876(var1);
+        if (var0 != null && !var0.isBlank()) {
+            String var2 = var0.replaceAll("\\s", "");
+            String var3 = new StringBuilder()
+                .insert(0, "client_id=")
+                .append(Http.method_1857(var1.getString5()))
+                .append("&grant_type=refresh_token")
+                .toString();
+            if (var1.getString6() != null) {
+                var3 = new StringBuilder().insert(0, var3).append("&redirect_uri=").append(Http.method_1857(var1.getString6())).toString();
+            }
+
+            return method_1875(
+                new StringBuilder()
+                    .insert(0, var3)
+                    .append("&refresh_token=")
+                    .append(Http.method_1857(var2))
+                    .append("&scope=")
+                    .append(Http.method_1857(var1.getString2()))
+                    .toString(),
+                var1
+            );
+        } else {
+            throw new AuthException("No refresh token stored for this account");
+        }
+    }
+
+    private static AuthException method_1873(Http.Response var0) {
+        java.lang.String var8; // declared by DeclareMissing
+        Http.Response var1 = var0;
+        Onyx.LOGGER.error("Microsoft token endpoint returned {}: {}", var0.intValue(), var0.string());
+        if (var0.intValue() == 429) {
+            return new AuthException("You are rate limited, try again in a moment");
+        } else if (var0.intValue() >= 500) {
+            return new AuthException("Microsoft services are unavailable");
+        } else {
+            try {
+                JsonObject var10000 = var1.method_1845();
+                String var2 = Http.method_1860(var10000, "error_description");
+                String var3 = Http.method_1860(var10000, "error");
+                String var4;
+                if (var2 != null) {
+                    var4 = var2;
+                } else {
+                    var4 = var3;
+                }
+
+                var8 = var4;
+            } catch (AuthException var6) {
+                Object var7 = null;
+                Object var5 = null;
+                return var5 == null
+                    ? new AuthException(new StringBuilder().insert(0, "Microsoft rejected the login (").append(var0.intValue()).append(")").toString())
+                    : new AuthException(var7.replaceAll("\\s+", " ").trim());
+            }
+
+            return var8 == null
+                ? new AuthException(new StringBuilder().insert(0, "Microsoft rejected the login (").append(var0.intValue()).append(")").toString())
+                : new AuthException(var8.replaceAll("\\s+", " ").trim());
+        }
+    }
+
+    private static XboxLiveAuth.MinecraftToken method_1874(String var0, String var1, XboxLiveAuth.ClientFlavour var2) throws AuthException {
+        Object[] var10002 = new Object[1];
+        boolean var10007 = false;
+        var10002[0] = var2.getString4() + var0;
+        Http.Response var10;
+        if (!(var10 = Http.method_1863(
+                "https://user.auth.xboxlive.com/user/authenticate",
+                "{\"Properties\":{\"AuthMethod\":\"RPS\",\"SiteName\":\"user.auth.xboxlive.com\",\"RpsTicket\":\"%s\"},\"RelyingParty\":\"http://auth.xboxlive.com\",\"TokenType\":\"JWT\"}"
+                    .formatted(var10002)
+            ))
+            .method_1846()) {
+            throw new AuthException(new StringBuilder().insert(0, "Xbox Live rejected the login (").append(var10.intValue()).append(")").toString());
+        } else {
+            JsonObject var10000 = var10.method_1845();
+            var0 = Http.method_1860(var10000, "Token");
+            JsonObject var4 = Http.method_1862(var10000);
+            if (var0 != null && var4 != null) {
+                String var19;
+                if ((var19 = Http.method_1860(var4, "uhs")) == null) {
+                    throw new AuthException("Xbox Live returned no user hash");
+                } else {
+                    Http.Response var12;
+                    if (!(var12 = Http.method_1863(
+                            "https://xsts.auth.xboxlive.com/xsts/authorize",
+                            "{\"Properties\":{\"SandboxId\":\"RETAIL\",\"UserTokens\":[\"%s\"]},\"RelyingParty\":\"rp://api.minecraftservices.com/\",\"TokenType\":\"JWT\"}"
+                                .formatted(var0)
+                        ))
+                        .method_1846()) {
+                        throw method_1869(var12);
+                    } else {
+                        String var5;
+                        JsonObject var13;
+                        if ((var5 = Http.method_1860(var13 = var12.method_1845(), "Token")) == null) {
+                            throw new AuthException("Xbox Live returned no security token");
+                        } else {
+                            String var9;
+                            JsonObject var14;
+                            if ((var14 = Http.method_1862(var13)) == null) {
+                                var9 = null;
+                            } else {
+                                var9 = Http.method_1860(var14, "xid");
+                            }
+
+                            Http.Response var15;
+                            if ((var15 = Http.method_1863(
+                                        "https://api.minecraftservices.com/authentication/login_with_xbox",
+                                        "{\"identityToken\":\"XBL3.0 x=%s;%s\"}".formatted(var19, var5)
+                                    ))
+                                    .intValue()
+                                == 403) {
+                                throw new AuthException("This build's Azure app is not approved for the Minecraft API");
+                            } else if (!var15.method_1846()) {
+                                throw new AuthException(
+                                    new StringBuilder().insert(0, "Minecraft services rejected the login (").append(var15.intValue()).append(")").toString()
+                                );
+                            } else {
+                                JsonObject var16;
+                                String var20;
+                                if ((var20 = Http.method_1860(var16 = var15.method_1845(), "access_token")) == null) {
+                                    throw new AuthException("Minecraft services returned no access token");
+                                } else {
+                                    long var7 = System.currentTimeMillis() + Http.method_1866(var16, "expires_in", 86400L) * 1000L;
+                                    Http.Response var17;
+                                    if (!(var17 = Http.method_1858(
+                                            "https://api.minecraftservices.com/minecraft/profile",
+                                            "Authorization",
+                                            new StringBuilder().insert(0, "Bearer ").append(var20).toString(),
+                                            "Accept",
+                                            "application/json"
+                                        ))
+                                        .method_1846()) {
+                                        throw new AuthException("This account does not own Minecraft");
+                                    } else {
+                                        var10000 = var17.method_1845();
+                                        var0 = Http.method_1860(var10000, "name");
+                                        var5 = Http.method_1860(var10000, "id");
+                                        if (var0 != null && var5 != null) {
+                                            return new XboxLiveAuth.MinecraftToken(var2, var1, var20, var7, method_1878(var5), var0, var9);
+                                        } else {
+                                            throw new AuthException("Minecraft returned an incomplete profile");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                throw new AuthException("Xbox Live returned no token");
+            }
+        }
+    }
+
+    private static XboxLiveAuth.MinecraftToken method_1875(String var0, XboxLiveAuth.ClientFlavour var1) throws AuthException {
+        Http.Response var4;
+        if (!(var4 = Http.method_1861(var1.getString(), var0)).method_1846()) {
+            throw method_1873(var4);
+        } else {
+            JsonObject var10000 = var4.method_1845();
+            var0 = Http.method_1860(var10000, "access_token");
+            String var3 = Http.method_1860(var10000, "refresh_token");
+            if (var0 == null) {
+                throw new AuthException("Microsoft did not return an access token");
+            } else if (var3 == null) {
+                throw new AuthException("Microsoft did not return a refresh token");
+            } else {
+                return method_1874(var0, var3, var1);
+            }
+        }
+    }
+
+    private static void method_1876(XboxLiveAuth.ClientFlavour var0) throws AuthException {
+        if (!var0.method_1867()) {
+            throw new AuthException("No Azure client id configured — set MicrosoftAuth.CLIENT_ID");
+        }
+    }
+
+    public static XboxLiveAuth.XboxToken method_1877(String var0) throws AuthException {
+        if (var0 != null && !var0.isBlank()) {
+            String[] var10001 = new String[]{"Authorization", null, null, null};
+            boolean var10006 = true;
+            var10001[1] = "Bearer " + var0.trim();
+            var10001[2] = "Accept";
+            var10001[3] = "application/json";
+            Http.Response var3;
+            if ((var3 = Http.method_1858("https://api.minecraftservices.com/minecraft/profile", var10001)).intValue() == 401) {
+                throw new AuthException("Access token is invalid or expired");
+            } else if (!var3.method_1846()) {
+                throw new AuthException(new StringBuilder().insert(0, "Minecraft services rejected the token (").append(var3.intValue()).append(")").toString());
+            } else {
+                JsonObject var10000 = var3.method_1845();
+                var0 = Http.method_1860(var10000, "name");
+                String var2 = Http.method_1860(var10000, "id");
+                if (var0 != null && var2 != null) {
+                    return new XboxLiveAuth.XboxToken(method_1878(var2), var0);
+                } else {
+                    throw new AuthException("Minecraft returned an incomplete profile");
+                }
+            }
+        } else {
+            throw new AuthException("No access token provided");
+        }
+    }
+
+    public static UUID method_1878(String var0) throws AuthException {
+        if ((var0 = var0.replace("-", "").trim()).length() != 32) {
+            throw new AuthException("Malformed profile id");
+        } else {
+            try {
+                return UUID.fromString(
+                    new StringBuilder()
+                        .insert(0, var0.substring(0, 8))
+                        .append("-")
+                        .append(var0.substring(8, 12))
+                        .append("-")
+                        .append(var0.substring(12, 16))
+                        .append("-")
+                        .append(var0.substring(16, 20))
+                        .append("-")
+                        .append(var0.substring(20))
+                        .toString()
+                );
+            } catch (IllegalArgumentException var2) {
+                throw new AuthException("Malformed profile id", var2);
+            }
+        }
+    }
+
+    public static String method_1879(String var0) {
+        return new StringBuilder()
+            .insert(0, "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=")
+            .append(Http.method_1857(XboxLiveAuth.ClientFlavour.AZURE.getString5()))
+            .append("&redirect_uri=")
+            .append(Http.method_1857(var0))
+            .append("&response_type=code&display=touch&scope=")
+            .append(Http.method_1857(XboxLiveAuth.ClientFlavour.AZURE.getString2()))
+            .append("&prompt=select_account")
+            .toString();
+    }
+
+    public static enum ClientFlavour {
+        LEGACY(
+            "legacy",
+            "00000000402b5328",
+            "service::user.auth.xboxlive.com::MBI_SSL",
+            "t=",
+            "https://login.live.com/oauth20_desktop.srf",
+            "https://login.live.com/oauth20_token.srf"
+        ),
+        AZURE(
+            "azure",
+            "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb",
+            "XboxLive.SignIn XboxLive.offline_access",
+            "d=",
+            null,
+            "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+        );
+
+        private final String string3;
+        private final String string5;
+        private final String string2;
+        private final String string4;
+        private final String string6;
+        private final String string;
+
+        public String getString2() {
+            return this.string2;
+        }
+
+        public boolean method_1867() {
+            return !this.string5.isBlank();
+        }
+
+        public String getString5() {
+            return this.string5;
+        }
+
+        private ClientFlavour(String var3, String var4, String var5, String var6, String var7, String var8) {
+            this.string3 = var3;
+            this.string5 = var4;
+            this.string2 = var5;
+            this.string4 = var6;
+            this.string6 = var7;
+            this.string = var8;
+        }
+
+        public String getString3() {
+            return this.string3;
+        }
+
+        public static XboxLiveAuth.ClientFlavour method_1868(String var0) {
+            String var3 = var0;
+            XboxLiveAuth.ClientFlavour[] var1;
+            int var2 = (var1 = values()).length;
+            int var6 = 0;
+
+            for (int var5 = 0; var5 < var2; var5 = ++var6) {
+                XboxLiveAuth.ClientFlavour var4;
+                if ((var4 = var1[var6]).string3.equalsIgnoreCase(var3)) {
+                    return var4;
+                }
+            }
+
+            return LEGACY;
+        }
+
+        public String getString4() {
+            return this.string4;
+        }
+
+        public String getString6() {
+            return this.string6;
+        }
+
+        public String getString() {
+            return this.string;
+        }
+    }
+
+    public record MinecraftToken(
+        XboxLiveAuth.ClientFlavour clientFlavour, String string4, String string3, long longValue, UUID uuid, String string, String string2
+    ) {
+    }
+
+    public record XboxToken(UUID uuid, String string) {
+    }
+}

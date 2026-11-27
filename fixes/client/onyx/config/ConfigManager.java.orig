@@ -1,0 +1,608 @@
+package client.onyx.config;
+
+import client.onyx.Onyx;
+import client.onyx.module.Category;
+import client.onyx.module.Module;
+import client.onyx.setting.Setting;
+import client.onyx.setting.SettingGroup;
+import client.onyx.setting.SettingHistory;
+import client.onyx.setting.ValueSetting;
+import client.onyx.util.DesktopUtil;
+import client.onyx.util.IMinecraft;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+public class ConfigManager implements IMinecraft {
+    private static final Pattern pattern = Pattern.compile("[a-zA-Z0-9_-]{1,64}");
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final String STRING_CONST = ".json";
+    public static final String STRING_CONST2 = "default";
+    private static final int INT_11 = 1;
+    private String string;
+
+    public ConfigManager.LoadResult method_2623(String var1, List<String> var2) {
+        var var12 = this;
+        Object var3 = var2 == null ? Set.of() : new LinkedHashSet(var2);
+        ArrayList var11 = new ArrayList();
+        JsonObject var4;
+        if ((var4 = method_2642(this.method_2630(var1))) == null) {
+            var11.addAll((Collection)var3);
+            return new ConfigManager.LoadResult(0, List.copyOf(var11));
+        } else {
+            int var5 = 0;
+            Iterator var13 = var3.iterator();
+
+            label38:
+            while (true) {
+                Iterator var9 = var13;
+
+                while (var9.hasNext()) {
+                    String var6 = (String)var13.next();
+                    if (!var1.equals(var6) && var12.method_2646(var6)) {
+                        JsonObject var7;
+                        JsonObject var8;
+                        if ((var8 = method_2642(var7 = var12.method_2630(var6))) != null) {
+                            method_2636(var4, var8);
+                            if (var12.method_2627(var6, var7)) {
+                                var5++;
+                            } else {
+                                var11.add(var6);
+                            }
+                            continue label38;
+                        }
+
+                        var11.add(var6);
+                        var9 = var13;
+                    } else {
+                        var11.add(var6);
+                        var9 = var13;
+                    }
+                }
+
+                return new ConfigManager.LoadResult(var5, List.copyOf(var11));
+            }
+        }
+    }
+
+    public String method_2624(String var1) {
+        var var3 = this;
+        if (!this.method_2646(var1)) {
+            return var1;
+        } else {
+            int var2 = 2;
+
+            for (int var5 = 2; var5 < 10000; var5 = ++var2) {
+                String var6 = new StringBuilder().insert(0, "_").append(var2).toString();
+                int var4 = Math.min(var1.length(), 64 - var6.length());
+                String var7 = new StringBuilder().insert(0, var1.substring(0, var4)).append(var6).toString();
+                if (!var3.method_2646(var7)) {
+                    return var7;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public String method_2625(String var1) {
+        var var3 = this;
+        if (!this.method_2646(var1)) {
+            return null;
+        } else {
+            int var2 = 1;
+
+            for (int var6 = 1; var6 < 10000; var6 = ++var2) {
+                String var5;
+                if (var2 == 1) {
+                    var5 = "_copy";
+                } else {
+                    var5 = new StringBuilder().insert(0, "_copy_").append(var2).toString();
+                }
+
+                int var4 = Math.min(var1.length(), 64 - var5.length());
+                String var8 = new StringBuilder().insert(0, var1.substring(0, var4)).append(var5).toString();
+                if (!var3.method_2646(var8)) {
+                    try {
+                        Files.copy(var3.method_2640(var1), var3.method_2640(var8));
+                        return var8;
+                    } catch (IOException var7) {
+                        Onyx.LOGGER.error("Failed to duplicate config '{}' as '{}'", var1, var8, var7);
+                        return null;
+                    }
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private Path method_2626() {
+        return this.method_2638().resolve("last-config.txt");
+    }
+
+    private boolean method_2627(String var1, JsonObject var2) {
+        JsonObject var4 = var2;
+        var var5 = this;
+
+        try {
+            Files.createDirectories(var5.method_2654());
+            Files.write(var5.method_2640(var1), gson.toJson((JsonElement)var4).getBytes(StandardCharsets.UTF_8));
+            return true;
+        } catch (IOException var3) {
+            Onyx.LOGGER.error("Failed to write config '{}'", var1, var3);
+            return false;
+        }
+    }
+
+    private void method_2628(ValueSetting<?> var1, JsonElement var2) {
+        JsonElement var4 = var2;
+        if (var2 != null && !var2.isJsonNull()) {
+            try {
+                var1.load(var4);
+            } catch (RuntimeException var3) {
+                Onyx.LOGGER.warn("Failed to load setting '{}'", var1.getName(), var3);
+            }
+        }
+    }
+
+    public String getString() {
+        return this.string;
+    }
+
+    public boolean method_2629(String var1) {
+        var var2 = this;
+        if (!this.method_2637(var1)) {
+            return false;
+        } else {
+            JsonObject var6 = new JsonObject();
+            var6.addProperty("version", 1);
+            var6.add("modules", this.method_2651());
+            Path var3 = this.method_2654().resolve(new StringBuilder().insert(0, var1).append(".json").append(".tmp").toString());
+
+            try {
+                Files.createDirectories(var2.method_2654());
+                Files.write(var3, gson.toJson((JsonElement)var6).getBytes(StandardCharsets.UTF_8));
+
+                try {
+                    Files.move(var3, var2.method_2640(var1), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                } catch (AtomicMoveNotSupportedException var4) {
+                    Files.move(var3, var2.method_2640(var1), StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                return true;
+            } catch (IOException var5) {
+                Onyx.LOGGER.error("Failed to save config '{}'", var1, var5);
+                return false;
+            }
+        }
+    }
+
+    private JsonObject method_2630(String var1) {
+        var var2 = this;
+        if (!this.method_2646(var1)) {
+            return null;
+        } else {
+            try {
+                String var5 = new String(Files.readAllBytes(var2.method_2640(var1)), StandardCharsets.UTF_8);
+                JsonElement var3;
+                return (var3 = new JsonParser().parse(var5)).isJsonObject() ? var3.getAsJsonObject() : null;
+            } catch (RuntimeException | IOException var4) {
+                Onyx.LOGGER.error("Failed to read config '{}'", var1, var4);
+                return null;
+            }
+        }
+    }
+
+    private static void method_2631(Setting var0) {
+        if (var0 instanceof ValueSetting) {
+            ValueSetting var5;
+            (var5 = (ValueSetting)var0).reset();
+        } else {
+            if (var0 instanceof SettingGroup) {
+                SettingGroup var3;
+                if ((var3 = (SettingGroup)var0).getEnabled() != null) {
+                    var3.getEnabled().reset();
+                }
+
+                Iterator var4;
+                for (Iterator var2 = var4 = var3.getList().iterator(); var2.hasNext(); var2 = var4) {
+                    method_2631((Setting)var4.next());
+                }
+            }
+        }
+    }
+
+    public void method_2632() {
+        String var2;
+        if ((var2 = this.method_2647()) == null || !this.method_2650(var2)) {
+            this.method_2650("default");
+        }
+    }
+
+    private void method_2633(String var1) {
+        var var2 = this;
+
+        try {
+            Files.createDirectories(var2.method_2638());
+            Files.write(var2.method_2626(), var1.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException var3) {
+            Onyx.LOGGER.error("Failed to remember config '{}'", var1, var3);
+        }
+    }
+
+    public boolean method_2634(String var1) {
+        if (this.method_2637(var1) && !this.method_2646(var1)) {
+            this.method_2645();
+            return this.method_2629(var1);
+        } else {
+            return false;
+        }
+    }
+
+    public String method_2635() {
+        return this.string == null ? "default" : this.string;
+    }
+
+    private static void method_2636(JsonObject var0, JsonObject var1) {
+        JsonObject var2 = var0;
+        Iterator var8 = Onyx.moduleManager.getArrayList().iterator();
+
+        label37:
+        while (true) {
+            Iterator var7 = var8;
+
+            while (var7.hasNext()) {
+                Module var3;
+                if ((var3 = (Module)var8.next()).getCategory() != Category.RENDER && var3.getCategory() != Category.HUD) {
+                    var7 = var8;
+                } else {
+                    JsonElement var4;
+                    if ((var4 = var2.get(var3.getName())) == null) {
+                        continue label37;
+                    }
+
+                    if (!var4.isJsonObject()) {
+                        var7 = var8;
+                    } else {
+                        JsonObject var9 = var4.getAsJsonObject();
+                        JsonElement var5;
+                        JsonObject var6 = (var5 = var1.get(var3.getName())) != null && var5.isJsonObject() ? var5.getAsJsonObject() : new JsonObject();
+                        method_2653(var9, var6, "enabled");
+                        method_2653(var9, var6, "settings");
+                        var1.add(var3.getName(), var6);
+                        var7 = var8;
+                    }
+                }
+            }
+
+            return;
+        }
+    }
+
+    public boolean method_2637(String var1) {
+        return var1 != null && pattern.matcher(var1).matches();
+    }
+
+    public Path method_2638() {
+        return new File(mc.mcDataDir, "onyx").toPath();
+    }
+
+    private void method_2639(String var1) {
+        this.string = var1;
+        this.method_2633(var1);
+    }
+
+    public Path method_2640(String var1) {
+        return this.method_2654().resolve(new StringBuilder().insert(0, var1).append(".json").toString());
+    }
+
+    private void method_2641(JsonObject var1, int var2) {
+        var var3 = this;
+        Iterator var10 = Onyx.moduleManager.getArrayList().iterator();
+
+        label53:
+        while (true) {
+            Iterator var7 = var10;
+
+            while (var7.hasNext()) {
+                Module var9 = (Module)var10.next();
+                JsonElement var4;
+                if ((var4 = var1.get(var9.getName())) == null) {
+                    continue label53;
+                }
+
+                if (!var4.isJsonObject()) {
+                    var7 = var10;
+                } else {
+                    JsonObject var11;
+                    JsonObject var10000 = var11 = var4.getAsJsonObject();
+                    var3.method_2628(var9.getBind(), var11.get("bind"));
+                    var3.method_2628(var9.getBindMode(), var11.get("bindMode"));
+                    JsonElement var5;
+                    if ((var5 = var10000.get("settings")) != null && var5.isJsonObject()) {
+                        JsonObject var6 = var5.getAsJsonObject();
+
+                        Iterator var12;
+                        for (Iterator var8 = var12 = var9.getSettings().iterator(); var8.hasNext(); var8 = var12) {
+                            SettingGroup.method_67((Setting)var12.next(), var6);
+                        }
+                    }
+
+                    if (var9 instanceof ConfigListener) {
+                        ConfigListener var13;
+                        (var13 = (ConfigListener)var9).method_2657();
+                    }
+
+                    if (var9.isListed()) {
+                        JsonElement var14;
+                        if ((var14 = var11.get("enabled")) != null && var14.isJsonPrimitive() && var14.getAsJsonPrimitive().isBoolean()) {
+                            var9.setEnabled(var14.getAsBoolean());
+                        }
+                        continue label53;
+                    }
+
+                    var7 = var10;
+                }
+            }
+
+            return;
+        }
+    }
+
+    private static JsonObject method_2642(JsonObject var0) {
+        if (var0 == null) {
+            return null;
+        } else {
+            JsonElement var2;
+            return (var2 = var0.get("modules")) != null && var2.isJsonObject() ? var2.getAsJsonObject() : null;
+        }
+    }
+
+    public boolean method_2643() {
+        return this.method_2629(this.method_2635());
+    }
+
+    public boolean method_2644(String var1) {
+        return var1 != null && var1.equals(this.string);
+    }
+
+    private void method_2645() {
+        SettingHistory.runWithoutRecording(() -> {
+            Iterator var0;
+            for (Iterator var4 = var0 = Onyx.moduleManager.getArrayList().iterator(); var4.hasNext(); var4 = var0) {
+                Module var1;
+                if ((var1 = (Module)var0.next()).isListed()) {
+                    var1.setEnabled(false);
+                }
+
+                Iterator var2;
+                for (Iterator var3 = var2 = var1.getSettings().iterator(); var3.hasNext(); var3 = var2) {
+                    method_2631((Setting)var2.next());
+                }
+
+                if (var1 instanceof ConfigListener) {
+                    ConfigListener var5;
+                    (var5 = (ConfigListener)var1).method_2657();
+                }
+
+                var1.syncSettingsEnabled();
+            }
+        });
+    }
+
+    public boolean method_2646(String var1) {
+        return this.method_2637(var1) && Files.isRegularFile(this.method_2640(var1));
+    }
+
+    private String method_2647() {
+        var var1 = this;
+        Path var3;
+        if (!Files.isRegularFile(var3 = this.method_2626())) {
+            return null;
+        } else {
+            try {
+                String var4 = new String(Files.readAllBytes(var3), StandardCharsets.UTF_8).trim();
+                return var1.method_2646(var4) ? var4 : null;
+            } catch (IOException var2) {
+                Onyx.LOGGER.error("Failed to read the last config", var2);
+                return null;
+            }
+        }
+    }
+
+    private static JsonElement method_2648(JsonElement var0) {
+        return new JsonParser().parse(var0.toString());
+    }
+
+    public void method_2649() {
+        var var1 = this;
+
+        try {
+            Files.createDirectories(var1.method_2654());
+        } catch (IOException var3) {
+            Onyx.LOGGER.error("Failed to create config folder", var3);
+            return;
+        }
+
+        DesktopUtil.method_1932(this.method_2654());
+    }
+
+    public boolean method_2650(String var1) {
+        var var3 = this;
+        if (!this.method_2646(var1)) {
+            return false;
+        } else {
+            JsonObject var2;
+            try {
+                String var6 = new String(Files.readAllBytes(var3.method_2640(var1)), StandardCharsets.UTF_8);
+                var2 = new JsonParser().parse(var6).getAsJsonObject();
+            } catch (RuntimeException | IOException var5) {
+                Onyx.LOGGER.error("Failed to read config '{}'", var1, var5);
+                return false;
+            }
+
+            int var7 = 1;
+            JsonElement var4;
+            if ((var4 = var2.get("version")) != null && var4.isJsonPrimitive() && var4.getAsJsonPrimitive().isNumber()) {
+                var7 = var4.getAsInt();
+            }
+
+            JsonElement var8;
+            if ((var8 = var2.get("modules")) != null && var8.isJsonObject()) {
+                var2 = var8.getAsJsonObject();
+                int var10 = var7;
+                SettingHistory.runWithoutRecording(() -> this.method_2641(var2, var10));
+                if (var7 < 1) {
+                    this.method_2629(var1);
+                }
+
+                this.method_2639(var1);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    private JsonObject method_2651() {
+        JsonObject var4 = new JsonObject();
+
+        Iterator var6;
+        for (Iterator var9 = var6 = Onyx.moduleManager.getArrayList().iterator(); var9.hasNext(); var9 = var6) {
+            Module var10 = (Module)var6.next();
+            JsonObject var1 = new JsonObject();
+            if (var10.isListed()) {
+                var1.addProperty("enabled", var10.isToggled());
+            }
+
+            var1.add("bind", var10.getBind().save());
+            var1.add("bindMode", var10.getBindMode().save());
+            JsonObject var5 = new JsonObject();
+            Iterator var2;
+            Iterator var8 = var2 = var10.getSettings().iterator();
+
+            while (var8.hasNext()) {
+                Setting var7;
+                if (!(var7 = (Setting)var2.next()).method_58()) {
+                    var8 = var2;
+                } else {
+                    var5.add(var7.getName(), var7.save());
+                    var8 = var2;
+                }
+            }
+
+            var1.add("settings", var5);
+            var4.add(var10.getName(), var1);
+        }
+
+        return var4;
+    }
+
+    public boolean method_2652(String var1) {
+        var var2 = this;
+        if (!this.method_2637(var1)) {
+            return false;
+        } else {
+            try {
+                boolean var4;
+                if ((var4 = Files.deleteIfExists(var2.method_2640(var1))) && var2.method_2644(var1)) {
+                    var2.string = null;
+                    var2.method_2656();
+                }
+
+                return var4;
+            } catch (IOException var3) {
+                Onyx.LOGGER.error("Failed to delete config '{}'", var1, var3);
+                return false;
+            }
+        }
+    }
+
+    private static void method_2653(JsonObject var0, JsonObject var1, String var2) {
+        JsonElement var3;
+        if ((var3 = var0.get(var2)) != null) {
+            var1.add(var2, method_2648(var3));
+        } else {
+            var1.remove(var2);
+        }
+    }
+
+    public Path method_2654() {
+        return this.method_2638().resolve("configs");
+    }
+
+    public List<String> method_2655() {
+        var var1 = this;
+        if (!Files.isDirectory(this.method_2654())) {
+            return List.of();
+        } else {
+            try {
+                Stream var8 = Files.list(var1.method_2654());
+
+                List var2;
+                try {
+                    var2 = var8.filter(var0 -> Files.isRegularFile(var0))
+                        .map(var0 -> var0.getFileName().toString())
+                        .filter(var0 -> var0.endsWith(".json"))
+                        .map(var0 -> var0.substring(0, var0.length() - ".json".length()))
+                        .filter(var1::method_2637)
+                        .sorted()
+                        .toList();
+                } catch (Throwable var6) {
+                    if (var8 != null) {
+                        try {
+                            var8.close();
+                        } catch (Throwable var5) {
+                            var6.addSuppressed(var5);
+                            throw var6;
+                        }
+
+                        throw var6;
+                    }
+
+                    throw var6;
+                }
+
+                if (var8 != null) {
+                    var8.close();
+                }
+
+                return var2;
+            } catch (IOException var7) {
+                Onyx.LOGGER.error("Failed to list configs", var7);
+                return List.of();
+            }
+        }
+    }
+
+    private void method_2656() {
+        var var1 = this;
+
+        try {
+            Files.deleteIfExists(var1.method_2626());
+        } catch (IOException var2) {
+            Onyx.LOGGER.error("Failed to forget the last config", var2);
+        }
+    }
+
+    public record LoadResult(int intValue, List<String> list) {
+    }
+}

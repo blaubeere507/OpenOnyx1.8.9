@@ -1,0 +1,38 @@
+package client.onyx.util;
+
+import client.onyx.Onyx;
+import java.awt.Frame;
+import java.io.File;
+import java.util.function.Consumer;
+
+public final class FileDialog {
+    private FileDialog() {
+    }
+
+    public static void method_2181(String var0, String var1, Consumer<String> var2) {
+        Thread var5 = new Thread(() -> {
+            String var3 = var0;
+
+            try {
+                java.awt.FileDialog var6 = new java.awt.FileDialog((Frame)null, var3, 0);
+                var6.setFile("*.png");
+                File var4;
+                if (!var1.isEmpty() && (var4 = new File(var1)).getParentFile() != null) {
+                    var6.setDirectory(var4.getParent());
+                }
+
+                var6.setVisible(true);
+                String var8 = var6.getDirectory();
+                var1 = var6.getFile();
+                if (var8 != null && var1 != null) {
+                    var2.accept(new File(var8, var1).getAbsolutePath());
+                    return;
+                }
+            } catch (Throwable var5x) {
+                Onyx.LOGGER.warn("File dialog failed - type the path in by hand instead", var5x);
+            }
+        }, "onyx-file-dialog");
+        var5.setDaemon(true);
+        var5.start();
+    }
+}

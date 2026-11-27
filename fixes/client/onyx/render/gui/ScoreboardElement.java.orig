@@ -1,0 +1,165 @@
+package client.onyx.render.gui;
+
+import client.onyx.module.hud.CustomGui;
+import client.onyx.render.anim.Animation;
+import client.onyx.render.anim.Easings;
+import client.onyx.render.font.FontStyle;
+import client.onyx.render.ui.PanelRenderer;
+import client.onyx.render.ui.UiRenderer;
+import client.onyx.ui.theme.ColorRoles;
+import client.onyx.ui.theme.Palette;
+import client.onyx.ui.theme.Theme;
+import client.onyx.ui.theme.Typography;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.scoreboard.Scoreboard;
+
+public final class ScoreboardElement extends HudElement {
+    private static final FontStyle fontStyle = Typography.fontStyle12;
+    private static final FontStyle fontStyle2 = Typography.fontStyle12;
+    private static final float FLOAT_7_012 = 7.0F;
+    private static final float FLOAT_5_01 = 5.0F;
+    private static final float FLOAT_60_01 = 60.0F;
+    private static final int INT_31 = 3;
+    private static final float FLOAT_11_01 = 11.0F;
+    private static final int INT_151 = 15;
+    private static final float FLOAT_1_012 = 1.0F;
+    private static final float FLOAT_6_01 = 6.0F;
+    private final Animation animation2 = new Animation(60.0F);
+    private final Animation animation = new Animation(22.0F);
+    private final List<ScoreboardElement.Row> list = new ArrayList<>();
+    private String string2 = "";
+    private final CustomGui customGui;
+
+    private void method_916() {
+        var var1 = this;
+        this.list.clear();
+        this.string2 = "";
+        Minecraft var8;
+        if ((var8 = Minecraft.getMinecraft()).theWorld != null && var8.thePlayer != null) {
+            ScoreObjective var9;
+            if ((var9 = method_917(var8)) != null) {
+                Scoreboard var4 = var9.getScoreboard();
+                Object var3 = new ArrayList();
+                Iterator var2 = var4.getSortedScores(var9).iterator();
+
+                label40:
+                while (true) {
+                    Iterator var6 = var2;
+
+                    while (var6.hasNext()) {
+                        Score var5;
+                        if ((var5 = (Score)var2.next()).getPlayerName() == null) {
+                            continue label40;
+                        }
+
+                        if (var5.getPlayerName().startsWith("#")) {
+                            var6 = var2;
+                        } else {
+                            var3.add(var5);
+                            var6 = var2;
+                        }
+                    }
+
+                    if (var3.size() > 15) {
+                        var3 = var3.subList(var3.size() - 15, var3.size());
+                    }
+
+                    this.string2 = var9.getDisplayName();
+
+                    int var11;
+                    for (int var7 = var11 = var3.size() - 1; var7 >= 0; var7 = var11) {
+                        Score var12 = (Score)var3.get(var11);
+                        ScorePlayerTeam var10 = var4.getPlayersTeam(var12.getPlayerName());
+                        List var10000 = var1.list;
+                        String var10004 = var12.getPlayerName();
+                        var11--;
+                        var10000.add(new ScoreboardElement.Row(ScorePlayerTeam.formatPlayerName(var10, var10004)));
+                    }
+
+                    return;
+                }
+            }
+        }
+    }
+
+    @Override
+    public float method_900(UiRenderer var1) {
+        float var2 = 29.0F + this.list.size() * 11.0F;
+        this.animation.method_603(var2, 200.0F, Easings.easing2);
+        this.animation.method_605(CustomGuiState.getFloatValue());
+        return this.animation.method_606();
+    }
+
+    @Override
+    public float method_898(UiRenderer var1) {
+        float var2 = IconFont.method_889(var1, fontStyle2, this.string2);
+
+        Iterator var6;
+        for (Iterator var5 = var6 = this.list.iterator(); var5.hasNext(); var5 = var6) {
+            ScoreboardElement.Row var4 = (ScoreboardElement.Row)var6.next();
+            var2 = Math.max(var2, IconFont.method_889(var1, fontStyle, var4.string()));
+        }
+
+        float var7 = this.customGui.scoreboardSettings.minWidth.method_151();
+        this.animation2.method_603(Math.max(var7, var2 + 14.0F), 200.0F, Easings.easing2);
+        this.animation2.method_605(CustomGuiState.getFloatValue());
+        return this.animation2.method_606();
+    }
+
+    public ScoreboardElement(CustomGui var1) {
+        super("mcgui:scoreboard", var1.scoreboardSettings.positionX, var1.scoreboardSettings.positionY, var1.scoreboardSettings.scale);
+        this.customGui = var1;
+    }
+
+    @Override
+    public void method_902(UiRenderer var1, float var2, float var3, float var4) {
+        Palette var13 = Theme.getPalette();
+        int var5 = Theme.method_180(ColorRoles.method_182(3, var13), this.customGui.scoreboardSettings.background.method_151() / 100.0F);
+        PanelRenderer.method_601(this.customGui.scoreboardSettings.blur.method_146());
+        var1.method_485(0.0F, 0.0F, var2, var3, 12.0F, 3);
+        PanelRenderer.method_597(var1, 0.0F, 0.0F, var2, var3, 12.0F, var5, this.customGui.scoreboardSettings.blur.method_146());
+        var1.method_443(0.0F, 0.0F, var2, var3);
+        float var9 = 6.0F;
+        IconFont.method_893(var1, fontStyle2, this.string2, var2 / 2.0F, var1.method_433(fontStyle2, var9 + 5.5F), var13.intValue15());
+        float var14 = var9 + 11.0F + 2.5F;
+        var1.method_479(7.0F, var14, var2 - 14.0F, 1.0F, Float.MAX_VALUE, var13.intValue12());
+        var2 = var9 + 11.0F + 5.0F + 1.0F;
+        Iterator var10 = this.list.iterator();
+
+        for (Iterator var7 = var10; var7.hasNext(); var7 = var10) {
+            ScoreboardElement.Row var15 = (ScoreboardElement.Row)var10.next();
+            float var6 = var2 + 5.5F;
+            IconFont.method_890(var1, fontStyle, var15.string(), 7.0F, var1.method_433(fontStyle, var6), var13.intValue7());
+            var2 += 11.0F;
+        }
+
+        var1.method_486();
+    }
+
+    private static ScoreObjective method_917(Minecraft var0) {
+        Scoreboard var1;
+        ScorePlayerTeam var3;
+        int var4;
+        ScoreObjective var5;
+        return (var3 = (var1 = var0.theWorld.getScoreboard()).getPlayersTeam(var0.thePlayer.getName())) != null
+                && (var4 = var3.getChatFormat().getColorIndex()) >= 0
+                && (var5 = var1.getObjectiveInDisplaySlot(3 + var4)) != null
+            ? var5
+            : var1.getObjectiveInDisplaySlot(1);
+    }
+
+    @Override
+    public boolean method_899(boolean var1) {
+        this.method_916();
+        return !this.list.isEmpty();
+    }
+
+    private record Row(String string) {
+    }
+}

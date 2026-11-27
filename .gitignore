@@ -1,0 +1,17 @@
+# build output and caches
+.gradle/
+build/
+work/
+out/
+
+# generated locally - never commit: mc-named.jar is Minecraft (Mojang) code, onyx-deobf.jar is a build output
+libs/*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+Thumbs.db
+Desktop.ini

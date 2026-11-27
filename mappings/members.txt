@@ -1,0 +1,111 @@
+# Onyx member rename map (hand-curated)
+# Format: <owner obf> <member obf> <descriptor obf | - for fields> <new name>
+# Methods are renamed together with every override/implementation in the hierarchy.
+
+# Module (r/K)
+client/onyx/r/K   I   ()V                          toggle
+client/onyx/r/K   d   ()Z                          isToggled
+client/onyx/r/K   L   (Z)V                         setEnabled
+client/onyx/r/K   L   ()V                          onEnable
+client/onyx/r/K   D   ()V                          onDisable
+client/onyx/r/K   i   ()V                          syncSettingsEnabled
+client/onyx/r/K   d   ()V                          initSettings
+client/onyx/r/K   L   ()Ljava/lang/String;         getSuffix
+client/onyx/r/K   d   ()Ljava/util/List;           getVisibleSettings
+client/onyx/r/K   i   ()Z                          hasBindMode
+client/onyx/r/K   D   ()Z                          isListed
+client/onyx/r/K   L   (Ljava/lang/Object;Ljava/lang/Class;)V   collectSettings
+client/onyx/r/K   f   -                            enabled
+client/onyx/r/K   H   -                            name
+client/onyx/r/K   I   -                            description
+client/onyx/r/K   e   -                            category
+client/onyx/r/K   i   -                            settings
+client/onyx/r/K   d   -                            bind
+client/onyx/r/K   l   -                            bindMode
+
+# Toggleable (t/K)
+client/onyx/t/K   L   ()Z                          isEnabled
+
+# Event (y/K)
+client/onyx/y/K   L   ()V                          cancel
+client/onyx/y/K   L   ()Z                          isCancelled
+client/onyx/y/K   e   -                            cancelled
+
+# NamedEnum (d/c)
+client/onyx/d/c   L   ()Ljava/lang/String;         getDisplayName
+
+# Onyx main class (c)
+client/onyx/c     L   ()Lclient/onyx/c;              getInstance
+client/onyx/c     L   ()Ljava/lang/String;          getUser
+client/onyx/c     d   ()V                          init
+client/onyx/c     L   ()V                          shutdown
+client/onyx/c     l   -                            moduleManager
+client/onyx/c     I   -                            commandManager
+client/onyx/c     d   -                            EVENT_BUS
+client/onyx/c     f   -                            accountManager
+client/onyx/c     e   -                            configManager
+
+# ValueSetting (d/h)
+client/onyx/d/h   f   -                            defaultValue
+client/onyx/d/h   H   -                            value
+client/onyx/d/h   e   -                            onChange
+client/onyx/d/h   L   ()Ljava/lang/Object;         getValue
+client/onyx/d/h   d   ()Ljava/lang/Object;         getDefaultValue
+client/onyx/d/h   i   (Ljava/lang/Object;)V        setValue
+client/onyx/d/h   L   (Ljava/lang/Object;)Ljava/lang/Object;   sanitize
+client/onyx/d/h   L   ()Z                          isDefault
+client/onyx/d/h   d   ()V                          reset
+client/onyx/d/h   L   (Ljava/util/function/Consumer;)Lclient/onyx/d/h;   onChange
+client/onyx/d/h   L   (Ljava/lang/String;)Lclient/onyx/d/h;            describe
+client/onyx/d/h   L   (Ljava/util/function/BooleanSupplier;)Lclient/onyx/d/h;   visibleWhen
+client/onyx/d/h   L   (Lclient/onyx/d/h;)Lclient/onyx/d/h;            visibleWhen
+client/onyx/d/h   L   (Lclient/onyx/d/h;Ljava/util/function/Predicate;)Lclient/onyx/d/h;   visibleWhen
+
+# Setting (d/J)
+client/onyx/d/J   L   (Ljava/lang/String;)Lclient/onyx/d/J;            describe
+client/onyx/d/J   L   (Ljava/util/function/BooleanSupplier;)Lclient/onyx/d/J;   visibleWhen
+client/onyx/d/J   L   ()Lcom/google/gson/JsonElement;                  save
+client/onyx/d/J   L   (Lcom/google/gson/JsonElement;)V                 load
+client/onyx/d/J   L   (Lclient/onyx/r/K;Lclient/onyx/d/J;)V           attach
+client/onyx/d/J   L   ()Lclient/onyx/r/K;                               getModule
+client/onyx/d/J   i   ()Z                                             isVisible
+client/onyx/d/J   L   (Z)V                                            setParentEnabled
+client/onyx/d/J   I   -                                               name
+client/onyx/d/J   d   -                                               description
+client/onyx/d/J   h   -                                               module
+client/onyx/d/J   f   -                                               parent
+client/onyx/d/J   l   -                                               order
+
+# Rotation (p/m/c)
+client/onyx/p/m/c L   ()F                          getYaw
+client/onyx/p/m/c i   ()F                          getPitch
+client/onyx/p/m/c e   -                            yaw
+client/onyx/p/m/c f   -                            pitch
+
+# RotationManager (p/J)
+client/onyx/p/J   I   -                            INSTANCE
+client/onyx/p/J   D   ()Lclient/onyx/p/m/c;         getServerRotation
+client/onyx/p/J   d   ()Lclient/onyx/p/c;           getActiveRequest
+
+# SettingHistory (d/j) - undo/redo for setting changes in the ClickGUI
+client/onyx/d/j   L   (Ljava/lang/Runnable;)V      runWithoutRecording
+client/onyx/d/j   d   ()Z                          undo
+client/onyx/d/j   L   ()Z                          redo
+client/onyx/d/j   L   (Ljava/lang/Object;Lclient/onyx/d/K;Lclient/onyx/d/K;)V   record
+client/onyx/d/j   D   ()V                          clear
+client/onyx/d/j   d   ()V                          disable
+client/onyx/d/j   L   ()V                          enable
+client/onyx/d/j   I   -                            replaying
+client/onyx/d/j   e   -                            enabled
+client/onyx/d/j   H   -                            undoStack
+client/onyx/d/j   i   -                            redoStack
+client/onyx/d/j   d   -                            MAX_ENTRIES
+client/onyx/d/j   f   -                            MERGE_WINDOW_MS
+client/onyx/d/I   f   -                            target
+client/onyx/d/I   H   -                            undo
+client/onyx/d/I   i   -                            redo
+client/onyx/d/I   e   -                            time
+client/onyx/d/K   L   ()V                          run
+
+# Command (l/K)
+client/onyx/l/c   L   (Ljava/lang/String;)Z        handleChatMessage

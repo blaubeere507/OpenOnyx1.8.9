@@ -1,0 +1,58 @@
+package client.onyx.util.player;
+
+import client.onyx.event.impl.PacketEvent;
+import client.onyx.event.impl.WorldLoadEvent;
+import java.util.Objects;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.C0DPacketCloseWindow;
+import net.minecraft.network.play.client.C0EPacketClickWindow;
+import net.minecraft.network.play.server.S2DPacketOpenWindow;
+import net.minecraft.network.play.server.S2EPacketCloseWindow;
+
+public final class ContainerTracker {
+    public static final ContainerTracker INSTANCE = new ContainerTracker();
+    private boolean flag;
+
+    private ContainerTracker() {
+    }
+
+    public boolean method_1938() {
+        return Minecraft.getMinecraft().currentScreen instanceof GuiInventory || this.flag;
+    }
+
+    @EventHandler(
+        priority = -1000
+    )
+    private void onPacket(PacketEvent var1) {
+        if (!var1.isCancelled()) {
+            Packet var6 = var1.getPacket();
+            Objects.requireNonNull(var6);
+            Object var4 = var6;
+            switch (var4) {
+                case C0EPacketClickWindow var7:
+                    if (((C0EPacketClickWindow)var4).getWindowId() == 0) {
+                        this.flag = true;
+                        return;
+                    }
+                case C0DPacketCloseWindow var8:
+                    this.flag = false;
+                    return;
+                case S2EPacketCloseWindow var9:
+                    this.flag = false;
+                    return;
+                case S2DPacketOpenWindow var10:
+                    this.flag = false;
+                    return;
+                default:
+            }
+        }
+    }
+
+    @EventHandler
+    private void onWorldLoad(WorldLoadEvent var1) {
+        this.flag = false;
+    }
+}

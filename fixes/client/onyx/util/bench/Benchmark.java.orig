@@ -1,0 +1,441 @@
+package client.onyx.util.bench;
+
+import client.onyx.Onyx;
+import client.onyx.module.Module;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ScreenShotHelper;
+
+public final class Benchmark {
+    private static final String STRING_CONST = System.getProperty("onyx.bench");
+    private static final boolean flag3;
+    private static final long longValue;
+    private static final long longValue3;
+    private static final List<Benchmark.PhaseStats> list;
+    private static final List<Benchmark.Result> list3;
+    private static final List<Long> list2;
+    private static Benchmark.Stage stage;
+    private static boolean flag4;
+    private static final boolean flag2;
+    private static boolean flag;
+    private static float floatValue;
+    private static double doubleValue;
+    private static final double DOUBLE_4_01 = 4.0;
+    private static final long LONG_7000000001 = 700000000L;
+    private static long longValue2;
+    private static final double DOUBLE_0_181 = 0.18;
+    private static long longValue4;
+    private static int intValue;
+    private static double doubleValue2;
+    private static double doubleValue3;
+    private static float floatValue2;
+
+    private Benchmark() {
+    }
+
+    private static void method_2098(Minecraft var0) {
+        if (flag && var0.thePlayer != null) {
+            Benchmark.PhaseStats var10;
+            if (intValue < list.size()) {
+                var10 = list.get(intValue);
+            } else {
+                var10 = null;
+            }
+
+            float var11;
+            if (var10 != null && var10.float_2() != null) {
+                var11 = var10.float_2();
+            } else {
+                var11 = floatValue2;
+            }
+
+            float var12;
+            if (var10 != null && var10.float_() != null) {
+                var12 = var10.float_();
+            } else {
+                var12 = floatValue;
+            }
+
+            method_2107(var0);
+            if (flag2) {
+                var0.gameSettings.thirdPersonView = 1;
+                var0.thePlayer.rotationYaw = var11;
+                var0.thePlayer.rotationPitch = var12;
+                double var4 = var0.thePlayer.posX - doubleValue2;
+                double var6 = var0.thePlayer.posZ - doubleValue3;
+                double var8;
+                if ((var8 = Math.sqrt(var4 * var4 + var6 * var6)) > 4.0) {
+                    var0.thePlayer.motionX = -var4 / var8 * 0.18;
+                    var0.thePlayer.motionZ = -var6 / var8 * 0.18;
+                } else {
+                    var4 = System.nanoTime() % 4000000000L / 4.0E9 * 2.0 * Math.PI;
+                    var0.thePlayer.motionX = Math.cos(var4) * 0.18;
+                    var0.thePlayer.motionZ = Math.sin(var4) * 0.18;
+                }
+            } else {
+                var0.thePlayer.setPositionAndRotation(doubleValue2, doubleValue, doubleValue3, var11, var12);
+                var0.thePlayer.motionX = 0.0;
+                var0.thePlayer.motionY = 0.0;
+                var0.thePlayer.motionZ = 0.0;
+                var0.thePlayer.onGround = true;
+            }
+        }
+    }
+
+    private static void method_2099(Minecraft var0) {
+        Iterator var3 = list.get(intValue).list().iterator();
+
+        while (var3.hasNext()) {
+            Module var2;
+            if ((var2 = method_2102((String)var3.next())) != null) {
+                var2.setEnabled(true);
+            }
+        }
+    }
+
+    private static void method_2100() {
+        StringBuilder var0;
+        (var0 = new StringBuilder()).append(String.format(Locale.ROOT, "%-28s %8s %10s %10s %10s%n", "phase", "fps", "median ms", "p95 ms", "vs base"));
+        double var5;
+        if (list3.isEmpty()) {
+            var5 = 0.0;
+        } else {
+            var5 = list3.get(0).doubleValue2();
+        }
+
+        double var1 = var5;
+
+        Iterator var3;
+        for (Iterator var7 = var3 = list3.iterator(); var7.hasNext(); var7 = var3) {
+            Benchmark.Result var4 = (Benchmark.Result)var3.next();
+            var0.append(
+                String.format(
+                    Locale.ROOT,
+                    "%-28s %8.1f %10.2f %10.2f %+10.1f%n",
+                    var4.string(),
+                    var4.doubleValue2(),
+                    var4.doubleValue3(),
+                    var4.doubleValue(),
+                    var4.doubleValue2() - var1
+                )
+            );
+        }
+
+        System.out.println(new StringBuilder().insert(0, "[onyx-bench] results\n").append((Object)var0).toString());
+        String var9;
+        if (!(var9 = System.getProperty("onyx.bench.out", "")).isEmpty()) {
+            try {
+                Files.writeString(Path.of(var9), var0.toString(), StandardCharsets.UTF_8);
+            } catch (IOException var8) {
+                method_2108(new StringBuilder().insert(0, "could not write report: ").append(var8).toString());
+            }
+        }
+    }
+
+    public static void method_2101() {
+        if (flag3 && stage != Benchmark.Stage.DONE) {
+            Minecraft var0 = Minecraft.getMinecraft();
+            long var1 = System.nanoTime();
+            switch (stage) {
+                case MENU:
+                    if (var0.currentScreen instanceof GuiMainMenu) {
+                        flag4 = var0.gameSettings.pauseOnLostFocus;
+                        var0.gameSettings.pauseOnLostFocus = false;
+                        method_2108(new StringBuilder().insert(0, "joining world '").append(STRING_CONST).append("'").toString());
+                        var0.launchIntegratedServer(STRING_CONST, STRING_CONST, null);
+                        method_2105(Benchmark.Stage.LOADING, var1);
+                        return;
+                    }
+                    break;
+                case LOADING:
+                    if (var0.thePlayer != null && var0.theWorld != null) {
+                        var0.displayGuiScreen(null);
+                        method_2106(var0);
+                        method_2103();
+                        method_2108("world up, warming up");
+                        method_2105(Benchmark.Stage.WARMUP, var1);
+                        return;
+                    }
+                    break;
+                case WARMUP:
+                    method_2098(var0);
+                    if (var1 - longValue2 >= longValue) {
+                        method_2110(var0, var1);
+                        return;
+                    }
+                    break;
+                case SETTLE:
+                    method_2098(var0);
+                    if (var1 - longValue2 >= 700000000L) {
+                        list2.clear();
+                        longValue4 = var1;
+                        method_2105(Benchmark.Stage.MEASURE, var1);
+                        return;
+                    }
+                    break;
+                case MEASURE:
+                    method_2098(var0);
+                    list2.add(var1 - longValue4);
+                    longValue4 = var1;
+                    if (var1 - longValue2 >= longValue3) {
+                        method_2104(var0, list.get(intValue).string());
+                        method_2109(list.get(intValue).string());
+                        method_2099(var0);
+                        intValue++;
+                        if (intValue >= list.size()) {
+                            method_2100();
+                            stage = Benchmark.Stage.DONE;
+                            var0.gameSettings.pauseOnLostFocus = flag4;
+                            var0.shutdown();
+                            return;
+                        }
+
+                        method_2110(var0, var1);
+                        return;
+                    }
+            }
+        }
+    }
+
+    private static Module method_2102(String var0) {
+        String var1 = var0;
+        if (Onyx.moduleManager == null) {
+            return null;
+        } else {
+            Iterator var3 = Onyx.moduleManager.getArrayList().iterator();
+
+            while (var3.hasNext()) {
+                Module var2;
+                if ((var2 = (Module)var3.next()).getName().equalsIgnoreCase(var1)) {
+                    return var2;
+                }
+            }
+
+            method_2108(new StringBuilder().insert(0, "unknown module '").append(var1).append("'").toString());
+            return null;
+        }
+    }
+
+    private static void method_2103() {
+        String var0 = System.getProperty("onyx.bench.modules", "");
+        list.add(new Benchmark.PhaseStats("baseline", List.of(), null, null));
+        if (!var0.isEmpty() && !var0.equals("-")) {
+            String[] var1;
+            int var2 = (var1 = var0.split(",")).length;
+            int var3 = 0;
+
+            for (int var8 = 0; var8 < var2; var8 = ++var3) {
+                String var4;
+                if (!(var4 = var1[var3].trim()).isEmpty()) {
+                    if (var4.equalsIgnoreCase("ALL")) {
+                        list.add(new Benchmark.PhaseStats("all render off", method_2111(), null, null));
+                    } else if (var4.equalsIgnoreCase("gui")) {
+                        list.add(new Benchmark.PhaseStats("gui", List.of(), null, null));
+                    } else if (!var4.toLowerCase(Locale.ROOT).startsWith("only:")) {
+                        if (var4.toLowerCase(Locale.ROOT).startsWith("look:")) {
+                            String[] var5 = var4.substring(5).split("/");
+                            list.add(new Benchmark.PhaseStats(var4, List.of(), Float.parseFloat(var5[0].trim()), Float.parseFloat(var5[1].trim())));
+                        } else {
+                            list.add(
+                                new Benchmark.PhaseStats(
+                                    new StringBuilder().insert(0, "-").append(var4).toString(),
+                                    List.of(var4.split("\\+", -1)).stream().map(String::trim).toList(),
+                                    null,
+                                    null
+                                )
+                            );
+                        }
+                    } else {
+                        List var9 = List.of(var4.substring(5).split("\\+", -1)).stream().map(String::trim).toList();
+                        ArrayList var6;
+                        (var6 = new ArrayList<>(method_2111())).removeIf(var1x -> var9.stream().anyMatch(var1xx -> var1xx.equalsIgnoreCase(var1x)));
+                        list.add(new Benchmark.PhaseStats(var4, var6, null, null));
+                    }
+                }
+            }
+        }
+
+        list.add(new Benchmark.PhaseStats("baseline (repeat)", List.of(), null, null));
+    }
+
+    private static void method_2104(Minecraft var0, String var1) {
+        Minecraft var2 = var0;
+        String var4;
+        if (!(var4 = System.getProperty("onyx.bench.shots", "")).isEmpty()) {
+            try {
+                File var5;
+                (var5 = new File(var4)).mkdirs();
+                ScreenShotHelper.saveScreenshot(
+                    var5, var1.replaceAll("[^A-Za-z0-9-]", "_") + ".png", var2.displayWidth, var2.displayHeight, var2.getFramebuffer()
+                );
+            } catch (Throwable var3) {
+                method_2108(new StringBuilder().insert(0, "screenshot failed: ").append(var3).toString());
+            }
+        }
+    }
+
+    private static void method_2105(Benchmark.Stage var0, long var1) {
+        stage = var0;
+        longValue2 = var1;
+    }
+
+    private static void method_2106(Minecraft var0) {
+        String var2;
+        String[] var3;
+        if (!(var2 = System.getProperty("onyx.bench.pose", "")).isEmpty() && (var3 = var2.split(",")).length == 5) {
+            doubleValue2 = Double.parseDouble(var3[0].trim());
+            doubleValue = Double.parseDouble(var3[1].trim());
+            doubleValue3 = Double.parseDouble(var3[2].trim());
+            floatValue2 = Float.parseFloat(var3[3].trim());
+            floatValue = Float.parseFloat(var3[4].trim());
+            flag = true;
+        } else {
+            doubleValue2 = var0.thePlayer.posX;
+            doubleValue = var0.thePlayer.posY;
+            doubleValue3 = var0.thePlayer.posZ;
+            floatValue2 = 0.0F;
+            floatValue = 0.0F;
+            flag = true;
+            method_2108(
+                String.format(Locale.ROOT, "pose %.2f,%.2f,%.2f  display %dx%d", doubleValue2, doubleValue, doubleValue3, var0.displayWidth, var0.displayHeight)
+            );
+        }
+    }
+
+    private static void method_2107(Minecraft var0) {
+        String var3;
+        if (!(var3 = System.getProperty("onyx.bench.hold", "")).isEmpty()) {
+            Item var4;
+            if ((var4 = Item.getByNameOrId(var3)) != null) {
+                ItemStack var2;
+                if ((var2 = var0.thePlayer.getHeldItem()) == null || var2.getItem() != var4) {
+                    var0.thePlayer.inventory.mainInventory[var0.thePlayer.inventory.currentItem] = new ItemStack(var4);
+                }
+            }
+        }
+    }
+
+    private static void method_2108(String var0) {
+        System.out.println(new StringBuilder().insert(0, "[onyx-bench] ").append(var0).toString());
+    }
+
+    private static void method_2109(String var0) {
+        if (list2.size() < 4) {
+            list3.add(new Benchmark.Result(var0, 0.0, 0.0, 0.0));
+        } else {
+            long[] var9 = new long[list2.size()];
+            long var2 = 0L;
+            int var4 = 0;
+
+            for (int var8 = 0; var8 < list2.size(); var8 = var4) {
+                var9[var4] = list2.get(var4);
+                var2 += var9[var4++];
+            }
+
+            Arrays.sort(var9);
+            double var11 = list2.size() / (var2 / 1.0E9);
+            double var10 = var9[var9.length / 2] / 1000000.0;
+            double var6 = var9[(int)(var9.length * 0.95)] / 1000000.0;
+            list3.add(new Benchmark.Result(var0, var11, var10, var6));
+            method_2108(String.format(Locale.ROOT, "  %-28s %6.1f fps  median %5.2f ms  p95 %5.2f ms", var0, var11, var10, var6));
+        }
+    }
+
+    private static void method_2110(Minecraft var0, long var1) {
+        Benchmark.PhaseStats var6;
+        Benchmark.PhaseStats var7;
+        if ((var7 = list.get(intValue)).string().equalsIgnoreCase("gui")) {
+            Onyx.moduleManager.clickGUI.setEnabled(true);
+            var6 = var7;
+        } else {
+            if (var0.currentScreen != null) {
+                var0.displayGuiScreen(null);
+            }
+
+            var6 = var7;
+        }
+
+        Iterator var4 = var6.list().iterator();
+
+        while (var4.hasNext()) {
+            Module var5;
+            if ((var5 = method_2102((String)var4.next())) != null) {
+                var5.setEnabled(false);
+            }
+        }
+
+        method_2108(new StringBuilder().insert(0, "phase ").append(intValue + 1).append("/").append(list.size()).append(": ").append(var7.string()).toString());
+        method_2105(Benchmark.Stage.SETTLE, var1);
+    }
+
+    static {
+        boolean var0;
+        if (STRING_CONST != null && !STRING_CONST.isEmpty()) {
+            var0 = true;
+        } else {
+            var0 = false;
+        }
+
+        flag3 = var0;
+        longValue = Long.getLong("onyx.bench.warmup", 12000L) * 1000000L;
+        longValue3 = Long.getLong("onyx.bench.measure", 4000L) * 1000000L;
+        list = new ArrayList<>();
+        list3 = new ArrayList<>();
+        list2 = new ArrayList<>();
+        stage = Benchmark.Stage.MENU;
+        flag4 = true;
+        boolean var1;
+        if (System.getProperty("onyx.bench.walk") != null) {
+            var1 = true;
+        } else {
+            var1 = false;
+        }
+
+        flag2 = var1;
+    }
+
+    private static List<String> method_2111() {
+        ArrayList var0 = new ArrayList();
+        if (Onyx.moduleManager == null) {
+            return var0;
+        } else {
+            Iterator var1 = Onyx.moduleManager.getArrayList().iterator();
+
+            while (var1.hasNext()) {
+                Module var2;
+                if ((var2 = (Module)var1.next()).isToggled()) {
+                    var0.add(var2.getName());
+                }
+            }
+
+            return var0;
+        }
+    }
+
+    private record PhaseStats(String string, List<String> list, Float float_2, Float float_) {
+    }
+
+    private record Result(String string, double doubleValue2, double doubleValue3, double doubleValue) {
+    }
+
+    private static enum Stage {
+        MENU,
+        LOADING,
+        WARMUP,
+        SETTLE,
+        MEASURE,
+        DONE;
+    }
+}

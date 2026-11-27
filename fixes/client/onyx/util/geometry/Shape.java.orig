@@ -1,0 +1,360 @@
+package client.onyx.util.geometry;
+
+import client.onyx.util.math.AabbUtil;
+import client.onyx.util.math.VecUtil;
+import java.util.function.DoubleConsumer;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
+import net.minecraft.util.EnumFacing.Axis;
+
+public interface Shape {
+    double DOUBLE_1_0EN91 = 1.0E-9;
+
+    static void method_2035(Vec3 var0) {
+        if (VecUtil.method_1959(var0)) {
+            throw new IllegalArgumentException(new StringBuilder().insert(0, "Direction should be not zero, actual: ").append(var0).toString());
+        }
+    }
+
+    default ClosestPoint method_2036(AxisAlignedBB var1) {
+        Vec3 var17 = this.vec31();
+        Vec3 var16 = this.vec32();
+        double var4 = var17.xCoord;
+        double var6 = var17.yCoord;
+        double var8 = var17.zCoord;
+        double var10 = var16.xCoord;
+        double var12 = var16.yCoord;
+        double var14 = var16.zCoord;
+        Polynomial var27 = new Polynomial(6);
+        if (!method_2052(var10, 0.0)) {
+            var27.method_2033((var1.minX - var4) / var10);
+            var27.method_2033((var1.maxX - var4) / var10);
+        }
+
+        if (!method_2052(var12, 0.0)) {
+            var27.method_2033((var1.minY - var6) / var12);
+            var27.method_2033((var1.maxY - var6) / var12);
+        }
+
+        if (!method_2052(var14, 0.0)) {
+            var27.method_2033((var1.minZ - var8) / var14);
+            var27.method_2033((var1.maxZ - var8) / var14);
+        }
+
+        var27.method_2032();
+        LineBounds var2 = this.method_2039();
+        double[] var18 = new double[]{Double.NaN, Double.POSITIVE_INFINITY};
+        DoubleConsumer var34 = var15 -> {
+            if (!Double.isNaN(var15 = var2.method_2057(var15))) {
+                var4 += var10 * var15;
+                var10 = var6 + var12 * var15;
+                var6 = var8 + var14 * var15;
+                var4 = AabbUtil.method_2022(var1, var4, var10, var6);
+                if (Double.isNaN(var18[0]) || var4 < var18[1] - 1.0E-9) {
+                    var18[0] = var15;
+                    var18[1] = var4;
+                }
+            }
+        };
+        double[] var9;
+        int var28 = (var9 = var2.method_2058()).length;
+        int var19 = 0;
+
+        for (int var22 = 0; var22 < var28; var22 = var19) {
+            double var10001 = var9[var19];
+            var19++;
+            var34.accept(var10001);
+        }
+
+        int var35 = 0;
+
+        for (int var23 = 0; var23 < var27.getIntValue(); var23 = var35) {
+            var34.accept(var27.method_2031(var35++));
+        }
+
+        Polynomial var36 = new Polynomial(8);
+        int var29 = 0;
+
+        for (int var24 = 0; var24 < var27.getIntValue(); var24 = var29) {
+            method_2040(var36, var2, var27.method_2031(var29++));
+        }
+
+        double[] var30;
+        var19 = (var30 = var2.method_2058()).length;
+        int var32 = 0;
+
+        for (int var25 = 0; var25 < var19; var25 = var32) {
+            double var20 = var30[var32];
+            var32++;
+            method_2040(var36, var2, var20);
+        }
+
+        var36.method_2032();
+        var4 = var2.getDoubleValue2();
+        int var33 = 0;
+
+        for (int var26 = 0; var26 < var36.getIntValue(); var26 = var33) {
+            double var38 = var36.method_2031(var33);
+            var33++;
+            method_2054(var1, var2, var4, var38, var17, var16, var34);
+            var4 = var38;
+        }
+
+        method_2054(var1, var2, var4, var2.getDoubleValue(), var17, var16, var34);
+        if (Double.isNaN(var18[0])) {
+            var34.accept(0.0);
+        }
+
+        if (Double.isNaN(var18[0])) {
+            throw new IllegalStateException(new StringBuilder().insert(0, "Unable to find nearest point on geometry ").append(this).toString());
+        } else {
+            return new ClosestPoint(this.method_2038(var18[0]), var18[1]);
+        }
+    }
+
+    private double method_2037(double[] var1) {
+        LineBounds var10 = this.method_2039();
+        double var3 = var1[0];
+        double var5 = var1[1];
+        double var7 = Math.max(var3, var10.getDoubleValue2());
+        boolean var9;
+        if (Double.isFinite(var10.getDoubleValue2()) && var10.getDoubleValue2() > var3 + 1.0E-9 && var10.getDoubleValue2() < var5 - 1.0E-9) {
+            var9 = true;
+        } else {
+            var9 = false;
+        }
+
+        return var9 ? var10.method_2057(var5) : var10.method_2057(var7);
+    }
+
+    Vec3 vec31();
+
+    default Vec3 method_2038(double var1) {
+        return VecUtil.method_1951(this.vec31(), var1, this.vec32());
+    }
+
+    LineBounds method_2039();
+
+    private static void method_2040(Polynomial var0, LineBounds var1, double var2) {
+        if (!(var2 < var1.getDoubleValue2() - 1.0E-9) && !(var2 > var1.getDoubleValue() + 1.0E-9)) {
+            var0.method_2034(var2);
+        }
+    }
+
+    default Vec3 method_2041(AxisAlignedBB var1) {
+        double[] var5;
+        if ((var5 = this.method_2042(var1)) == null) {
+            return null;
+        } else {
+            double var2;
+            return Double.isNaN(var2 = this.method_2037(var5)) ? null : this.method_2046(var2);
+        }
+    }
+
+    private double[] method_2042(AxisAlignedBB var1) {
+        Vec3 var11 = this.vec31();
+        Vec3 var8 = this.vec32();
+        double var4 = Double.NEGATIVE_INFINITY;
+        double var6 = Double.POSITIVE_INFINITY;
+        Axis[] var21;
+        int var9 = (var21 = Axis.values()).length;
+        int var10 = 0;
+
+        for (int var20 = 0; var20 < var9; var20 = ++var10) {
+            Axis var2 = var21[var10];
+            double var12 = var11.get(var2);
+            double var14 = var8.get(var2);
+            double var16 = var1.min(var2);
+            double var18 = var1.max(var2);
+            if (method_2052(var14, 0.0)) {
+                if (var12 < var16 || var12 > var18) {
+                    return null;
+                }
+            } else {
+                var16 = (var16 - var12) / var14;
+                var12 = (var18 - var12) / var14;
+                var4 = Math.max(var4, Math.min(var16, var12));
+                var6 = Math.min(var6, Math.max(var16, var12));
+                if (var4 > var6 + 1.0E-9) {
+                    return null;
+                }
+            }
+        }
+
+        LineBounds var22 = this.method_2039();
+        return !(var6 < var22.getDoubleValue2() - 1.0E-9) && !(var4 > var22.getDoubleValue() + 1.0E-9) ? new double[]{var4, var6} : null;
+    }
+
+    default double method_2043(Vec3 var1) {
+        return this.method_2044(var1).distanceToSqr(var1);
+    }
+
+    default Vec3 method_2044(Vec3 var1) {
+        double var2;
+        if (Double.isNaN(var2 = this.method_2039().method_2059(this.method_2053(var1)))) {
+            throw new IllegalStateException(
+                new StringBuilder().insert(0, "Unable to project point ").append(var1).append(" on geometry ").append(this).toString()
+            );
+        } else {
+            return this.method_2038(var2);
+        }
+    }
+
+    private static void method_2045(
+        double[] var0, LineBounds var1, LineBounds var2, Vec3 var3, Vec3 var4, double var5, double var7, double var9, double var11, double var13
+    ) {
+        var11 = var1.method_2057(var11);
+        var13 = var2.method_2057(var13);
+        if (!Double.isNaN(var11) && !Double.isNaN(var13)) {
+            var5 = var5 + var3.xCoord * var11 - var4.xCoord * var13;
+            var7 = var7 + var3.yCoord * var11 - var4.yCoord * var13;
+            var9 = var9 + var3.zCoord * var11 - var4.zCoord * var13;
+            var5 = var5 * var5 + var7 * var7 + var9 * var9;
+            if (Double.isNaN(var0[0]) || var5 < var0[2] - 1.0E-9) {
+                var0[0] = var11;
+                var0[1] = var13;
+                var0[2] = var5;
+            }
+        }
+    }
+
+    Vec3 vec32();
+
+    default Vec3 method_2046(double var1) {
+        double var3;
+        return Double.isNaN(var3 = this.method_2039().method_2057(var1)) ? null : this.method_2038(var3);
+    }
+
+    private static boolean method_2047(double var0, double var2, double var4) {
+        if (!Double.isFinite(var0)) {
+            return false;
+        } else {
+            boolean var7;
+            if (Double.isFinite(var2) && !(var0 > var2 + 1.0E-9)) {
+                var7 = false;
+            } else {
+                var7 = true;
+            }
+
+            boolean var8;
+            if (Double.isFinite(var4) && !(var0 < var4 - 1.0E-9)) {
+                var8 = false;
+            } else {
+                var8 = true;
+            }
+
+            return var7 && var8;
+        }
+    }
+
+    default double method_2048(double var1, double var3, double var5) {
+        Vec3 var9 = this.vec31();
+        Vec3 var8;
+        return VecUtil.method_1939(var8 = this.vec32(), var1 - var9.xCoord, var3 - var9.yCoord, var5 - var9.zCoord) / var8.lengthSqr();
+    }
+
+    default boolean method_2049(AxisAlignedBB var1) {
+        return this.method_2042(var1) != null;
+    }
+
+    private static double method_2050(double var0, double var2) {
+        if (Double.isFinite(var0) && Double.isFinite(var2)) {
+            return var0 < var2 - 1.0E-9 ? (var0 + var2) * 0.5 : Double.NaN;
+        } else if (Double.isFinite(var0)) {
+            return var0 + 1.0;
+        } else {
+            return Double.isFinite(var2) ? var2 - 1.0 : 0.0;
+        }
+    }
+
+    default PointPair method_2051(Shape var1) {
+        Vec3 var5 = this.vec32();
+        Vec3 var4 = var1.vec32();
+        LineBounds var30 = this.method_2039();
+        LineBounds var2 = var1.method_2039();
+        double var6 = this.vec31().xCoord - var1.vec31().xCoord;
+        double var8 = this.vec31().yCoord - var1.vec31().yCoord;
+        double var10 = this.vec31().zCoord - var1.vec31().zCoord;
+        double var12 = var5.dotProduct(var5);
+        double var14 = var5.dotProduct(var4);
+        double var16 = var4.dotProduct(var4);
+        double var18 = VecUtil.method_1939(var5, var6, var8, var10);
+        double var20 = VecUtil.method_1939(var4, var6, var8, var10);
+        double var22 = var12 * var16 - var14 * var14;
+        double[] var24 = new double[]{Double.NaN, Double.NaN, Double.POSITIVE_INFINITY};
+        if (Math.abs(var22) > 1.0E-9) {
+            method_2045(var24, var30, var2, var5, var4, var6, var8, var10, (var14 * var20 - var16 * var18) / var22, (var12 * var20 - var14 * var18) / var22);
+        }
+
+        double[] var25;
+        int var26 = (var25 = var30.method_2058()).length;
+        int var27 = 0;
+
+        for (int var28 = 0; var28 < var26; var28 = var27) {
+            var22 = var25[var27];
+            double var10010 = var14 * var22 + var20;
+            var27++;
+            method_2045(var24, var30, var2, var5, var4, var6, var8, var10, var22, var2.method_2059(var10010 / var16));
+        }
+
+        var26 = (var25 = var2.method_2058()).length;
+        var27 = 0;
+
+        for (int var29 = 0; var29 < var26; var29 = var27) {
+            var22 = var25[var27];
+            double var10009 = (var14 * var22 - var18) / var12;
+            var27++;
+            method_2045(var24, var30, var2, var5, var4, var6, var8, var10, var30.method_2059(var10009), var22);
+        }
+
+        method_2045(var24, var30, var2, var5, var4, var6, var8, var10, var30.method_2059(-var18 / var12), 0.0);
+        method_2045(var24, var30, var2, var5, var4, var6, var8, var10, 0.0, var2.method_2059(var20 / var16));
+        return Double.isNaN(var24[0]) ? null : new PointPair(this.method_2038(var24[0]), var1.method_2038(var24[1]));
+    }
+
+    static boolean method_2052(double var0, double var2) {
+        return Math.abs(var2 - var0) < 1.0E-5;
+    }
+
+    default double method_2053(Vec3 var1) {
+        return this.method_2048(var1.xCoord, var1.yCoord, var1.zCoord);
+    }
+
+    private static void method_2054(AxisAlignedBB var0, LineBounds var1, double var2, double var4, Vec3 var6, Vec3 var7, DoubleConsumer var8) {
+        AxisAlignedBB var18 = var0;
+        var2 = Math.max(var2, var1.getDoubleValue2());
+        var4 = Math.min(var4, var1.getDoubleValue());
+        double var9;
+        if (!Double.isNaN(var9 = method_2050(var2, var4))) {
+            Vec3 var27 = VecUtil.method_1951(var6, var9, var7);
+            double var11 = 0.0;
+            double var13 = 0.0;
+            Axis[] var15;
+            int var16 = (var15 = Axis.values()).length;
+            int var17 = 0;
+
+            for (int var25 = 0; var25 < var16; var25 = ++var17) {
+                Axis var26 = var15[var17];
+                double var19 = var27.get(var26);
+                double var21 = var7.get(var26);
+                double var23 = var6.get(var26);
+                if (var19 < var18.min(var26)) {
+                    var11 += var21 * var21;
+                    var13 += var21 * (var23 - var18.min(var26));
+                } else if (var19 > var18.max(var26)) {
+                    var11 += var21 * var21;
+                    var13 += var21 * (var23 - var18.max(var26));
+                }
+            }
+
+            if (Math.abs(var11) <= 1.0E-9) {
+                var8.accept(var9);
+            } else {
+                double var30;
+                if (method_2047(var30 = -var13 / var11, var2, var4)) {
+                    var8.accept(var30);
+                }
+            }
+        }
+    }
+}

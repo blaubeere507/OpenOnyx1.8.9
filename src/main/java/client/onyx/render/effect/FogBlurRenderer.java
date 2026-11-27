@@ -1,0 +1,397 @@
+package client.onyx.render.effect;
+
+import client.onyx.Onyx;
+import client.onyx.module.render.FogBlur;
+import client.onyx.render.shader.ShaderProgram;
+import client.onyx.ui.theme.Theme;
+import client.onyx.util.IMinecraft;
+import java.nio.ByteBuffer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.shader.Framebuffer;
+import org.lwjgl.opengl.GL11;
+
+public final class FogBlurRenderer implements IMinecraft {
+    private static boolean flag2 = true;
+    private static int intValue6 = -1;
+    private static int intValue5 = -1;
+    private static int intValue2 = -1;
+    private static int intValue = -1;
+    private static int intValue7 = -1;
+    private static int intValue3 = -1;
+    private static final int INT_58891 = 5889;
+    private static ShaderProgram shaderProgram;
+    private static ShaderProgram shaderProgram2;
+    private static final int INT_58881 = 5888;
+    private static int intValue4;
+    private static boolean flag;
+    private static ShaderProgram shaderProgram3;
+    private static final int INT_21 = 2;
+    private static final int INT_104961 = 10496;
+    private static final float FLOAT_0_051 = 0.05F;
+    private static int intValue8;
+
+    private static void method_364(int var0, int var1) {
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit + var0);
+        GlStateManager.bindTexture(var1);
+    }
+
+    private static void method_365() {
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glBegin(7);
+        GL11.glTexCoord2f(0.0F, 0.0F);
+        GL11.glVertex2f(0.0F, 0.0F);
+        GL11.glTexCoord2f(1.0F, 0.0F);
+        GL11.glVertex2f(1.0F, 0.0F);
+        GL11.glTexCoord2f(1.0F, 1.0F);
+        GL11.glVertex2f(1.0F, 1.0F);
+        GL11.glTexCoord2f(0.0F, 1.0F);
+        GL11.glVertex2f(0.0F, 1.0F);
+        GL11.glEnd();
+    }
+
+    private static void method_366(ShaderProgram var0, int var1, int var2, int var3, int var4, int var5, int var6) {
+        OpenGlHelper.glBindFramebuffer(OpenGlHelper.GL_FRAMEBUFFER, var2);
+        GlStateManager.viewport(0, 0, var3, var4);
+        method_364(0, var1);
+        var0.method_817();
+        var0.method_815("Sampler0", 0);
+        var0.method_812("uSourceSize", var5, var6);
+        method_365();
+    }
+
+    private static void method_367(FogBlur var0, float var1, Framebuffer var2, int var3, int var4) {
+        if (var2 != null) {
+            var2.bindFramebuffer(false);
+        } else {
+            OpenGlHelper.glBindFramebuffer(OpenGlHelper.GL_FRAMEBUFFER, 0);
+        }
+
+        GlStateManager.viewport(0, 0, var3, var4);
+        float var17 = Math.max(1.05F, mc.gameSettings.renderDistanceChunks * 16.0F * 4.0F);
+        shaderProgram3.method_817();
+        shaderProgram3.method_815("BlurSampler", 1);
+        shaderProgram3.method_815("DepthSampler", 2);
+        shaderProgram3.method_822("uCamera", 0.05F, var17, var1, 0.0F);
+        ShaderProgram var21 = shaderProgram3;
+        float var10002 = var0.distance.method_151();
+        float var10003 = var0.fade.method_151();
+        float var10004 = var0.tint.method_151();
+        ShaderProgram var10;
+        String var11;
+        float var12;
+        float var13;
+        float var14;
+        float var15;
+        if (!var0.clientColor.method_146()) {
+            float var9 = var10004;
+            float var8 = var10003;
+            float var7 = var10002;
+            String var6 = "uFog";
+            ShaderProgram var5 = var21;
+            var15 = 0.0F;
+            var14 = var9;
+            var13 = var8;
+            var12 = var7;
+            var11 = var6;
+            var10 = var5;
+        } else {
+            var15 = 1.0F;
+            var14 = var10004;
+            var13 = var10003;
+            var12 = var10002;
+            var11 = "uFog";
+            var10 = var21;
+        }
+
+        var10.method_822(var11, var12, var13, var14, var15);
+        int var19 = Theme.getPalette().intValue31();
+        int var18 = Theme.getPalette().intValue27();
+        shaderProgram3.method_813("uColor1", var19);
+        shaderProgram3.method_813("uColor2", var19);
+        shaderProgram3.method_813("uColor3", var18);
+        shaderProgram3.method_813("uColor4", var18);
+        method_364(1, intValue2);
+        method_364(2, intValue5);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 771);
+        method_365();
+        GlStateManager.disableBlend();
+        method_364(2, 0);
+        method_364(1, 0);
+        method_364(0, 0);
+    }
+
+    private static void method_368(int var0) {
+        int var1 = Math.max(1, intValue8 / 2);
+        int var5 = Math.max(1, intValue4 / 2);
+        int var3 = Math.max(1, var1 / 2);
+        int var4 = Math.max(1, var5 / 2);
+        method_366(shaderProgram, var0, intValue7, var1, var5, intValue8, intValue4);
+        method_366(shaderProgram, intValue2, intValue3, var3, var4, var1, var5);
+        method_366(shaderProgram2, intValue, intValue7, var1, var5, var3, var4);
+    }
+
+    private static void method_369() {
+        ShaderProgram.method_819();
+        GlStateManager.matrixMode(5889);
+        GlStateManager.popMatrix();
+        GlStateManager.matrixMode(5888);
+        GlStateManager.popMatrix();
+        GlStateManager.depthMask(true);
+        GlStateManager.enableDepth();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableFog();
+        GlStateManager.enableLighting();
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.resetColor();
+    }
+
+    private static void method_370() {
+        GL11.glTexParameteri(3553, 10241, 9729);
+        GL11.glTexParameteri(3553, 10240, 9729);
+        GL11.glTexParameteri(3553, 10242, 33071);
+        GL11.glTexParameteri(3553, 10243, 33071);
+    }
+
+    private static int method_371(int var0) {
+        int var1 = OpenGlHelper.glGenFramebuffers(); // hand-fixed: obfuscated slot reuse overwrote texture id var0
+        if (var1 == -1) {
+            return -1;
+        } else {
+            OpenGlHelper.glBindFramebuffer(OpenGlHelper.GL_FRAMEBUFFER, var1);
+            OpenGlHelper.glFramebufferTexture2D(OpenGlHelper.GL_FRAMEBUFFER, OpenGlHelper.GL_COLOR_ATTACHMENT0, 3553, var0, 0);
+            int var2 = OpenGlHelper.glCheckFramebufferStatus(OpenGlHelper.GL_FRAMEBUFFER);
+            OpenGlHelper.glBindFramebuffer(OpenGlHelper.GL_FRAMEBUFFER, 0);
+            return var2 == OpenGlHelper.GL_FRAMEBUFFER_COMPLETE ? var1 : -1;
+        }
+    }
+
+    private static void method_372(int var0, int var1) {
+        method_364(0, intValue5);
+        GL11.glCopyTexSubImage2D(3553, 0, 0, 0, 0, 0, var0, var1);
+    }
+
+    private FogBlurRenderer() {
+    }
+
+    private static void method_373(Framebuffer var0, boolean var1) {
+        if (var1) {
+            method_364(0, var0.framebufferTexture);
+            method_382(var0.framebufferFilter, 10496);
+            method_364(0, 0);
+        }
+    }
+
+    public static void method_374() {
+        if (flag2 && Onyx.moduleManager != null) {
+            if (OpenGlHelper.shadersSupported) {
+                FogBlur var0 = Onyx.moduleManager.fogBlur;
+                Minecraft var1 = IMinecraft.mc;
+                if (var0.isToggled() && var1.theWorld != null) {
+                    float var7;
+                    if (var0.disableOnZoom.method_146()) {
+                        var7 = 1.0F - Math.clamp(Onyx.moduleManager.zoom.method_1116(), 0.0F, 1.0F);
+                    } else {
+                        var7 = 1.0F;
+                    }
+
+                    float var2 = var7;
+                    if (!(var7 <= 0.01F)) {
+                        Framebuffer var3 = var1.getFramebuffer();
+                        boolean var8;
+                        if (OpenGlHelper.isFramebufferEnabled() && var3 != null) {
+                            var8 = true;
+                        } else {
+                            var8 = false;
+                        }
+
+                        boolean var4 = var8;
+                        int var9;
+                        if (var8) {
+                            var9 = var3.framebufferWidth;
+                        } else {
+                            var9 = var1.displayWidth;
+                        }
+
+                        int var5 = var9;
+                        int var10;
+                        if (var8) {
+                            var10 = var3.framebufferHeight;
+                        } else {
+                            var10 = var1.displayHeight;
+                        }
+
+                        int var6 = var10;
+                        if (var9 > 0 && var10 > 0) {
+                            if (!flag) {
+                                flag = true;
+                                shaderProgram = ShaderProgram.method_820("onyx_fog_down");
+                                shaderProgram2 = ShaderProgram.method_820("onyx_fog_up");
+                                shaderProgram3 = ShaderProgram.method_820("onyx_fog_composite");
+                            }
+
+                            if (shaderProgram != null
+                                && shaderProgram2 != null
+                                && shaderProgram3 != null
+                                && shaderProgram.isFlag()
+                                && shaderProgram2.isFlag()
+                                && shaderProgram3.isFlag()) {
+                                try {
+                                    method_380(var5, var6, var4);
+                                    int var18 = method_378(var3, var4, var5, var6);
+                                    method_372(var5, var6);
+                                    method_377();
+                                    method_368(var18);
+                                    method_373(var3, var4);
+                                    FogBlur var13;
+                                    float var14;
+                                    Framebuffer var15;
+                                    int var16;
+                                    if (!var4) {
+                                        var16 = var5;
+                                        var15 = null;
+                                        var14 = var2;
+                                        var13 = var0;
+                                    } else {
+                                        var16 = var5;
+                                        var15 = var3;
+                                        var14 = var2;
+                                        var13 = var0;
+                                    }
+
+                                    method_367(var13, var14, var15, var16, var6);
+                                    method_369();
+                                } catch (Throwable var17) {
+                                    method_376(var17);
+                                }
+                            } else {
+                                flag2 = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static int method_375(int var0, int var1) {
+        int var3;
+        GlStateManager.bindTexture(var3 = TextureUtil.glGenTextures());
+        GL11.glTexImage2D(3553, 0, 33190, var0, var1, 0, 6402, 5126, (ByteBuffer)null);
+        method_370();
+        return var3;
+    }
+
+    private static void method_376(Throwable var0) {
+        flag2 = false;
+
+        try {
+            method_379();
+        } catch (Throwable var1) {
+        }
+
+        Onyx.LOGGER.warn("Fog Blur failed, disabled for this session", var0);
+    }
+
+    private static void method_377() {
+        GlStateManager.matrixMode(5889);
+        GlStateManager.pushMatrix();
+        GlStateManager.loadIdentity();
+        GL11.glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+        GlStateManager.matrixMode(5888);
+        GlStateManager.pushMatrix();
+        GlStateManager.loadIdentity();
+        GlStateManager.disableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.disableDepth();
+        GlStateManager.depthMask(false);
+        GlStateManager.disableLighting();
+        GlStateManager.disableFog();
+        GlStateManager.enableTexture2D();
+    }
+
+    private static int method_378(Framebuffer var0, boolean var1, int var2, int var3) {
+        if (var1) {
+            method_364(0, var0.framebufferTexture);
+            method_382(9729, 33071);
+            return var0.framebufferTexture;
+        } else {
+            method_364(0, intValue6);
+            GL11.glCopyTexSubImage2D(3553, 0, 0, 0, 0, 0, var2, var3);
+            return intValue6;
+        }
+    }
+
+    private static void method_379() {
+        if (intValue7 != -1) {
+            OpenGlHelper.glDeleteFramebuffers(intValue7);
+            intValue7 = -1;
+        }
+
+        if (intValue3 != -1) {
+            OpenGlHelper.glDeleteFramebuffers(intValue3);
+            intValue3 = -1;
+        }
+
+        int[] var0;
+        int var1 = (var0 = new int[]{intValue6, intValue5, intValue2, intValue}).length;
+        int var2 = 0;
+
+        for (int var4 = 0; var4 < var1; var4 = ++var2) {
+            int var3;
+            if ((var3 = var0[var2]) != -1) {
+                TextureUtil.deleteTexture(var3);
+            }
+        }
+
+        intValue6 = -1;
+        intValue5 = -1;
+        intValue2 = -1;
+        intValue = -1;
+        intValue8 = 0;
+        intValue4 = 0;
+    }
+
+    private static void method_380(int var0, int var1, boolean var2) {
+        if (intValue2 == -1 || intValue8 != var0 || intValue4 != var1 || !var2 && intValue6 == -1) {
+            method_379();
+            int var3 = Math.max(1, var0 / 2);
+            int var4 = Math.max(1, var1 / 2);
+            int var5 = Math.max(1, var3 / 2);
+            int var6 = Math.max(1, var4 / 2);
+            if (!var2) {
+                intValue6 = method_381(var0, var1);
+            }
+
+            intValue2 = method_381(var3, var4);
+            intValue = method_381(var5, var6);
+            intValue5 = method_375(var0, var1);
+            intValue7 = method_371(intValue2);
+            intValue3 = method_371(intValue);
+            if (intValue7 != -1 && intValue3 != -1) {
+                intValue8 = var0;
+                intValue4 = var1;
+            } else {
+                throw new IllegalStateException("could not create fog blur render targets");
+            }
+        }
+    }
+
+    private static int method_381(int var0, int var1) {
+        int var3;
+        GlStateManager.bindTexture(var3 = TextureUtil.glGenTextures());
+        GL11.glTexImage2D(3553, 0, 32856, var0, var1, 0, 6408, 5121, (ByteBuffer)null);
+        method_370();
+        return var3;
+    }
+
+    private static void method_382(int var0, int var1) {
+        GL11.glTexParameteri(3553, 10241, var0);
+        GL11.glTexParameteri(3553, 10240, var0);
+        GL11.glTexParameteri(3553, 10242, var1);
+        GL11.glTexParameteri(3553, 10243, var1);
+    }
+}

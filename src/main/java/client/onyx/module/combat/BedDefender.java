@@ -1,0 +1,1251 @@
+package client.onyx.module.combat;
+
+import client.onyx.Onyx;
+import client.onyx.command.Command;
+import client.onyx.event.impl.PlayerUpdateEvent;
+import client.onyx.module.Category;
+import client.onyx.module.Module;
+import client.onyx.module.combat.bedwars.BedWarsObjectives;
+import client.onyx.render.world.BoxRenderer;
+import client.onyx.rotation.HitVecUtil;
+import client.onyx.rotation.MoveFix;
+import client.onyx.rotation.MoveFixMode;
+import client.onyx.rotation.YawPitch;
+import client.onyx.setting.NamedEnum;
+import client.onyx.setting.impl.BooleanSetting;
+import client.onyx.setting.impl.EnumSetting;
+import client.onyx.setting.impl.NumberSetting;
+import client.onyx.util.item.BlockItemUtil;
+import client.onyx.util.player.BlockPlacer;
+import client.onyx.util.player.SwingMode;
+import client.onyx.util.world.BlockRaycast;
+import client.onyx.util.world.HitboxMode;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
+import java.util.concurrent.ThreadLocalRandom;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockBed;
+import net.minecraft.block.BlockBed.EnumPartType;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+
+public class BedDefender extends Module {
+    private static final Map<String, List<BedDefender.PlacementStep>> map2 = new LinkedHashMap<>();
+    private static final float[] floatValueArray;
+    private static final double DOUBLE_4_51 = 4.5;
+    private static final String STRING_CONST = "{\"EndWoolCorners\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":2}],\"EndWoolCorners2\":[{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":3}],\"EndGlassNoCorners\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":2}],\"WoodWoolCorners\":[{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":1}],\"EndGlassWool\":[{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":-3,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-3,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":-2,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-2,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":3},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":4},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":2,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":2,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":3,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":3,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":2},{\"block\":\"wool\",\"x\":-1,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-3},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-2},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":3,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":3,\"z\":1}],\"Wool1Layer\":[{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-1}],\"EndWoodLongCorners\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"planks\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"planks\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"planks\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"planks\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"planks\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"planks\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":2}],\"EndWoolLong\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-3},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-2}]}";
+    public BooleanSetting onlyTopBeds = new BooleanSetting("Only Top Beds", true).describe("Never click the side of a bed, only its top face");
+    public BooleanSetting bedwarsOnly = new BooleanSetting("Bedwars Only", true).describe("Anchor to the tracked team bed instead of the nearest bed in range");
+    public NumberSetting delayAfterSwap = new NumberSetting("Delay After Swap", 0.0, 0.0, 10.0, 1.0).method_147(" ticks");
+    public NumberSetting delayAfterAiming = new NumberSetting("Delay After Aiming", 0.0, 0.0, 10.0, 1.0).method_147(" ticks");
+    public NumberSetting sneakHoldTicks = new NumberSetting("Sneak Hold Ticks", 5.0, 0.0, 20.0, 1.0).method_147(" ticks");
+    public NumberSetting aimSpeed = new NumberSetting("Aim Speed", 20.0, 1.0, 180.0, 1.0).method_147(" deg/t");
+    public NumberSetting fov = new NumberSetting("FOV", 180.0, 0.0, 180.0, 1.0).describe("How far off your own aim a candidate placement angle may be");
+    public EnumSetting<BedDefender.DefensePattern> defense = new EnumSetting<>("Defense", BedDefender.DefensePattern.END_GLASS_NO_CORNERS);
+    public EnumSetting<BedDefender.BreakOrder> order = new EnumSetting<>("Order", BedDefender.BreakOrder.BOTTOM_UP)
+        .describe(
+            "Which open spot to wall in first when several are placeable - whatever this says, a spot standing in front of another is still left for last"
+        );
+    public NumberSetting targetsPerTick = new NumberSetting("Targets Per Tick", 4.0, 1.0, 16.0, 1.0)
+        .describe("How many different spots to search for an aim each tick before giving up on the tick");
+    public NumberSetting targetLock = new NumberSetting("Target Lock", 30.0, 5.0, 100.0, 5.0)
+        .method_147(" ticks")
+        .describe("How long to keep turning toward one spot before writing it off and trying another");
+    public NumberSetting retryCooldown = new NumberSetting("Retry Cooldown", 20.0, 0.0, 100.0, 5.0)
+        .method_147(" ticks")
+        .describe("How long a spot that could not be reached is skipped before it is tried again");
+    public NumberSetting stuckTimeout = new NumberSetting("Stuck Timeout", 100.0, 0.0, 400.0, 20.0)
+        .method_147(" ticks")
+        .describe("Turn off after this long with nothing placeable - 0 never gives up");
+    public EnumSetting<MoveFixMode> moveFix = new EnumSetting<>("Move fix", MoveFixMode.SILENT)
+        .describe("Keeps movement consistent with the rotation the server sees");
+    public BooleanSetting debugLogs = new BooleanSetting("Debug Logs", false);
+    private String string = "";
+    private final Map<String, Integer> map3 = new HashMap<>();
+    private List<BedDefender.PlacementStep> list = new ArrayList<>();
+    private final Map<BlockPos, Integer> map = new HashMap<>();
+    private final Set<String> set = new HashSet<>();
+    private BlockPos blockPos;
+    private BlockPos blockPos2;
+    private int intValue;
+    private int intValue2;
+    private boolean flag;
+    private boolean flag2;
+    private int intValue3;
+    private boolean flag3;
+    private int intValue4;
+    private int intValue5;
+    private BlockPos blockPos3;
+
+    private int method_1585(String var1) {
+        var var3 = this;
+        String var4 = var1.toLowerCase();
+        String var2;
+        Integer var6;
+        if ((var6 = this.map3.get(var4)) != null && (var2 = method_1601(mc.thePlayer.inventory.getStackInSlot(var6))) != null && var2.equalsIgnoreCase(var1)) {
+            return var6;
+        } else {
+            this.method_1619(new StringBuilder().insert(0, "looking for block '").append(var4).append("' in hotbar").toString());
+            int var9 = 0;
+
+            for (int var5 = 0; var5 < 9; var5 = ++var9) {
+                ItemStack var7;
+                if ((var7 = mc.thePlayer.inventory.getStackInSlot(var9)) != null) {
+                    String var8 = method_1601(var7);
+                    var3.method_1619("slot " + var9 + " -> " + var8);
+                    if (var8 != null && var8.equalsIgnoreCase(var1)) {
+                        var3.map3.put(var4, var9);
+                        return var9;
+                    }
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    private BlockPos method_1586(int var1) {
+        BlockPos var10000 = new BlockPos(mc.thePlayer);
+        int var12 = var10000.getX();
+        int var11 = var10000.getY();
+        int var4 = var10000.getZ();
+        double var5 = Double.MAX_VALUE;
+        BlockPos var7 = null;
+
+        int var8;
+        int var9;
+        for (int var22 = var8 = var12 - var1; var22 <= var12 + var1; var22 = ++var8) {
+            int var10;
+            for (int var21 = var9 = var11 - var1; var21 <= var11 + var1; var21 = ++var9) {
+                for (int var20 = var10 = var4 - var1; var20 <= var4 + var1; var20 = ++var10) {
+                    BlockPos var3 = new BlockPos(var8, var9, var10);
+                    if ("bed".equalsIgnoreCase(method_1604(var3))) {
+                        BlockPos var23 = null;
+                        BlockPos var13 = null;
+                        switch (method_1615(var3)) {
+                            case 0:
+                                var13 = var3;
+                                var10000 = var23 = var3.add(0, 0, 1);
+                                break;
+                            case 1:
+                                var13 = var3;
+                                var10000 = var23 = var3.add(-1, 0, 0);
+                                break;
+                            case 2:
+                                var13 = var3;
+                                var10000 = var23 = var3.add(0, 0, -1);
+                                break;
+                            case 3:
+                                var13 = var3;
+                                var10000 = var23 = var3.add(1, 0, 0);
+                                break;
+                            case 8:
+                                var23 = var3;
+                                var13 = var3.add(0, 0, -1);
+                                var10000 = var3;
+                                break;
+                            case 9:
+                                var23 = var3;
+                                var13 = var3.add(1, 0, 0);
+                                var10000 = var3;
+                                break;
+                            case 10:
+                                var23 = var3;
+                                var13 = var3.add(0, 0, 1);
+                                var10000 = var3;
+                                break;
+                            case 11:
+                                var23 = var3;
+                                var13 = var3.add(-1, 0, 0);
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                            default:
+                                var10000 = var23;
+                        }
+
+                        if (var10000 != null && var13 != null) {
+                            double var14 = var23.distanceSq(var12, var11, var4);
+                            double var16 = var13.distanceSq(var12, var11, var4);
+                            double var18 = Math.min(var14, var16);
+                            var3 = var14 <= var16 ? var23 : var13;
+                            if (var18 < var5) {
+                                var5 = var18;
+                                var7 = var3;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return var7;
+    }
+
+    private boolean method_1587(List<BedDefender.PlacementStep> var1) {
+        if (var1 != null && !var1.isEmpty()) {
+            HashSet var2 = new HashSet();
+            Iterator var5 = var1.iterator();
+
+            while (var5.hasNext()) {
+                BedDefender.PlacementStep var3;
+                if ((var3 = (BedDefender.PlacementStep)var5.next()).string() != null) {
+                    var2.add(var3.string().toLowerCase());
+                }
+            }
+
+            int var6 = 0;
+
+            for (int var4 = 0; var4 < 9; var4 = ++var6) {
+                String var7;
+                if ((var7 = method_1601(mc.thePlayer.inventory.getStackInSlot(var6))) != null && var2.contains(var7.toLowerCase())) {
+                    return true;
+                }
+            }
+
+            return false;
+        } else {
+            return false;
+        }
+    }
+
+    private Comparator<BedDefender.PatternBlock> method_1588() {
+        switch ((BedDefender.BreakOrder)this.order.getValue()) {
+            case BOTTOM_UP:
+                return Comparator.<BedDefender.PatternBlock>comparingInt(var0 -> var0.blockPos().getY())
+                    .thenComparing(Comparator.comparingDouble(BedDefender.PatternBlock::doubleValue).reversed())
+                    .thenComparingInt(BedDefender.PatternBlock::intValue);
+            case FURTHEST:
+                return Comparator.comparingDouble(BedDefender.PatternBlock::doubleValue).reversed().thenComparingInt(BedDefender.PatternBlock::intValue);
+            case NEAREST:
+                return Comparator.comparingDouble(BedDefender.PatternBlock::doubleValue).thenComparingInt(BedDefender.PatternBlock::intValue);
+            case PATTERN:
+                return Comparator.comparingInt(BedDefender.PatternBlock::intValue);
+            default:
+                throw new MatchException(null, null);
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        if (this.flag) {
+            method_1618(false);
+            this.flag = false;
+        }
+
+        this.blockPos3 = null;
+        MoveFix.method_2147();
+        this.method_1619("disabled.");
+    }
+
+    private static double method_1589(double var0, double var2) {
+        return ThreadLocalRandom.current().nextDouble(var0, var2);
+    }
+
+    private void method_1590() {
+        if (this.flag) {
+            if (this.intValue > 0) {
+                this.intValue--;
+            } else {
+                method_1618(false);
+                this.flag = false;
+                this.method_1619("released sneak.");
+            }
+        }
+    }
+
+    private void method_1591() {
+        var var1 = this;
+        this.set.clear();
+        int var4 = 0;
+
+        for (int var3 = 0; var3 < 9; var3 = ++var4) {
+            String var2;
+            if ((var2 = method_1601(mc.thePlayer.inventory.getStackInSlot(var4))) != null) {
+                var1.set.add(var2.toLowerCase());
+            }
+        }
+    }
+
+    private void method_1592(BlockPos var1) {
+        int var3;
+        if ((var3 = this.retryCooldown.method_149()) > 0) {
+            this.map.put(var1, var3);
+        }
+    }
+
+    private static String method_1593(Block var0) {
+        if (var0 == null) {
+            return "air";
+        } else {
+            Object var2;
+            return (var2 = Block.blockRegistry.getNameForObject(var0)) == null ? "" : method_1594(var2.toString());
+        }
+    }
+
+    private static String method_1594(String var0) {
+        int var2;
+        return (var2 = var0.indexOf(58)) < 0 ? var0 : var0.substring(var2 + 1);
+    }
+
+    private static float method_1595(float var0) {
+        float var1;
+        return (var1 = (var0 % 360.0F + 360.0F) % 360.0F) > 180.0F ? var1 - 360.0F : var1;
+    }
+
+    private static MovingObjectPosition method_1596(double var0, float var2, float var3) {
+        MovingObjectPosition var6;
+        if ((var6 = BlockRaycast.method_1997(var0, HitboxMode.OUTLINE, false, HitVecUtil.method_2133(), HitVecUtil.method_2132(var2, var3))) == null
+            || var6.typeOfHit != MovingObjectType.BLOCK) {
+            return null;
+        } else {
+            return var6.getBlockPos() != null && var6.sideHit != null ? var6 : null;
+        }
+    }
+
+    public void method_1597(float var1) {
+        if (this.isToggled() && this.blockPos3 != null && mc.theWorld != null) {
+            AxisAlignedBB var3 = BlockPlacer.axisAlignedBB.offset(this.blockPos3.getX(), this.blockPos3.getY(), this.blockPos3.getZ());
+            if (BoxRenderer.method_519(var1, true)) {
+                BoxRenderer.method_518(var3, -16711936, 1.5F, 1073807104);
+                BoxRenderer.method_521();
+            }
+        }
+    }
+
+    private float[] method_1598(float var1, float var2, float var3, float var4) {
+        float var6 = this.aimSpeed.method_151();
+        var3 -= var1;
+        var4 -= var2;
+        var1 += Math.max(-var6, Math.min(var6, var3));
+        var2 += Math.max(-var6, Math.min(var6, var4));
+        return new float[]{var1, var2};
+    }
+
+    private float[] method_1599(float var1, float var2, BlockPos var3, String var4, float var5, float var6) {
+        MovingObjectPosition var12;
+        if ((var12 = method_1596(4.5, var1, var2)) == null) {
+            return null;
+        } else {
+            BlockPos var13 = var12.getBlockPos();
+            EnumFacing var16 = var12.sideHit;
+            if (!var13.offset(var16).equals(var3)) {
+                return null;
+            } else {
+                String var7 = method_1604(var13);
+                if (this.onlyTopBeds.method_146() && var16 != EnumFacing.UP && var7.equals("bed")) {
+                    return null;
+                } else {
+                    int var8 = mc.thePlayer.inventory.currentItem;
+                    int var9;
+                    if ((var9 = this.method_1585(var4)) == -1) {
+                        return null;
+                    } else {
+                        if (var8 != var9) {
+                            this.method_1619("switching to slot " + var9 + " for " + var4);
+                            mc.thePlayer.inventory.currentItem = var9;
+                            this.intValue3 = this.delayAfterSwap.method_149();
+                        }
+
+                        if (!this.method_1614(var13, var16)) {
+                            return null;
+                        } else if (this.intValue3-- > 0) {
+                            this.method_1619(new StringBuilder().insert(0, "swap delay... (").append(this.intValue3 + 1).append(" left)").toString());
+                            return floatValueArray;
+                        } else if (!mc.gameSettings.keyBindSneak.isKeyDown() && var7.equals("bed")) {
+                            method_1618(true);
+                            this.flag = true;
+                            this.intValue = this.sneakHoldTicks.method_149();
+                            this.method_1619("sneaking over bed for placement");
+                            return floatValueArray;
+                        } else {
+                            boolean var14 = false;
+                            MovingObjectPosition var17;
+                            if ((var17 = method_1596(4.5, var5, var6)) != null) {
+                                BlockPos var18 = var17.getBlockPos();
+                                EnumFacing var20 = var17.sideHit;
+                                if (var18.offset(var20).equals(var3)) {
+                                    String var21 = method_1604(var18);
+                                    if (!this.onlyTopBeds.method_146() || var20 == EnumFacing.UP || !var21.equals("bed")) {
+                                        var14 = true;
+                                    }
+                                }
+                            }
+
+                            if (this.intValue5 <= 0 && var14) {
+                                this.intValue5 = this.delayAfterAiming.method_149();
+                                boolean[] var19 = new boolean[]{false};
+                                BlockPlacer.method_24(var17, () -> var19[0] = true, () -> false, SwingMode.DO_NOT_HIDE);
+                                if (!var19[0]) {
+                                    this.method_1619(new StringBuilder().insert(0, "place failed at ").append(method_1613(var3)).toString());
+                                } else {
+                                    this.method_1619(new StringBuilder().insert(0, "placed ").append(var4).append(" at ").append(method_1613(var3)).toString());
+                                    this.method_1592(var3);
+                                    this.blockPos2 = null;
+                                }
+
+                                return new float[]{var5, var6};
+                            } else {
+                                if (this.intValue5 > 0) {
+                                    this.intValue5--;
+                                }
+
+                                return floatValueArray;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static {
+        JsonObject var10000;
+        label87: {
+            JsonObject var0;
+            try {
+                var0 = new JsonParser()
+                    .parse(
+                        "{\"EndWoolCorners\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":2}],\"EndWoolCorners2\":[{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":3}],\"EndGlassNoCorners\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":2}],\"WoodWoolCorners\":[{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":1}],\"EndGlassWool\":[{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"stained_glass\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"stained_glass\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"stained_glass\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"stained_glass\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"stained_glass\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":-3,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-3,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":-2,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-2,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":3},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":4},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":2,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":2,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":3,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":3,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":2},{\"block\":\"wool\",\"x\":-1,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-3},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-2},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":3,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":3,\"z\":1}],\"Wool1Layer\":[{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-1}],\"EndWoodLongCorners\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"planks\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"planks\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"planks\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"planks\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"planks\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"planks\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"planks\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"planks\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"planks\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"planks\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"planks\",\"x\":-1,\"y\":0,\"z\":2}],\"EndWoolLong\":[{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":2},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":-1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-2},{\"block\":\"end_stone\",\"x\":0,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":-1},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":0},{\"block\":\"end_stone\",\"x\":1,\"y\":0,\"z\":1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":-1},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":0},{\"block\":\"end_stone\",\"x\":0,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":-2,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":-1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":-1},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":0},{\"block\":\"wool\",\"x\":0,\"y\":2,\"z\":1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":-1},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":0},{\"block\":\"wool\",\"x\":1,\"y\":1,\"z\":1},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":-1},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":0},{\"block\":\"wool\",\"x\":2,\"y\":0,\"z\":1},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":3},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":2},{\"block\":\"wool\",\"x\":1,\"y\":0,\"z\":-2},{\"block\":\"wool\",\"x\":0,\"y\":1,\"z\":-2},{\"block\":\"wool\",\"x\":0,\"y\":0,\"z\":-3},{\"block\":\"wool\",\"x\":-1,\"y\":0,\"z\":-2}]}"
+                    )
+                    .getAsJsonObject();
+            } catch (Exception var13) {
+                var10000 = new JsonObject();
+                break label87;
+            }
+
+            var10000 = var0;
+        }
+
+        Iterator var1;
+        for (Iterator var9 = var1 = var10000.entrySet().iterator(); var9.hasNext(); var9 = var1) {
+            Entry var2 = (Entry)var1.next();
+            ArrayList var3 = new ArrayList();
+
+            try {
+                Iterator var4 = ((JsonElement)var2.getValue()).getAsJsonArray().iterator();
+
+                label77:
+                while (true) {
+                    Iterator var8 = var4;
+
+                    while (true) {
+                        if (!var8.hasNext()) {
+                            break label77;
+                        }
+
+                        JsonElement var5 = (JsonElement)var4.next();
+
+                        try {
+                            String var7;
+                            JsonObject var18;
+                            if ((var18 = var5.getAsJsonObject()).has("block")) {
+                                var7 = var18.get("block").getAsString();
+                            } else {
+                                var7 = "";
+                            }
+
+                            if (!var7.isEmpty()) {
+                                BedDefender.PlacementStep var10001;
+                                BlockPos var10004;
+                                int var10006;
+                                JsonObject var10007;
+                                if (var18.has("x")) {
+                                    var10006 = var18.get("x").getAsInt();
+                                    var10007 = var18;
+                                } else {
+                                    var10006 = 0;
+                                    var10007 = var18;
+                                }
+
+                                int var19;
+                                JsonObject var10008;
+                                if (var10007.has("y")) {
+                                    var19 = var18.get("y").getAsInt();
+                                    var10008 = var18;
+                                } else {
+                                    var19 = 0;
+                                    var10008 = var18;
+                                }
+
+                                var10004 = new BlockPos(var10006, var19, var10008.has("z") ? var18.get("z").getAsInt() : 0);
+                                var10001 = new BedDefender.PlacementStep(var7, var10004);
+                                var3.add(var10001);
+                                break;
+                            }
+                        } catch (Exception var11) {
+                            break;
+                        }
+
+                        var8 = var4;
+                    }
+                }
+            } catch (Exception var12) {
+            }
+
+            map2.put((String)var2.getKey(), var3);
+        }
+
+        BedDefender.DefensePattern[] var14;
+        int var15 = (var14 = BedDefender.DefensePattern.values()).length;
+        int var16 = 0;
+
+        for (int var10 = 0; var10 < var15; var10 = ++var16) {
+            BedDefender.DefensePattern var17 = var14[var16];
+            if (!map2.containsKey(var17.getDisplayName())) {
+                Onyx.LOGGER.warn("BedDefender: no defense named '{}' in the embedded JSON", var17.getDisplayName());
+            }
+        }
+
+        floatValueArray = new float[]{-999.0F, -999.0F};
+    }
+
+    private static float method_1600(float var0, float var1) {
+        return var1 + (((var0 - var1 + 180.0F) % 360.0F + 360.0F) % 360.0F - 180.0F);
+    }
+
+    private static String method_1601(ItemStack var0) {
+        if (var0 == null) {
+            return null;
+        } else {
+            Block var2;
+            if ((var2 = BlockItemUtil.method_1989(var0)) != null) {
+                return method_1593(var2);
+            } else {
+                Object var3;
+                return (var3 = Item.itemRegistry.getNameForObject(var0.getItem())) == null ? null : method_1594(var3.toString());
+            }
+        }
+    }
+
+    private static float[] method_1602(Vec3 var0, double var1, double var3, double var5) {
+        var1 -= var0.xCoord;
+        var3 -= var0.yCoord;
+        var5 -= var0.zCoord;
+        double var7 = Math.sqrt(var1 * var1 + var5 * var5);
+        float var10 = method_1595((float)Math.toDegrees(Math.atan2(var5, var1)) - 90.0F);
+        float var2 = (float)Math.toDegrees(-Math.atan2(var3, var7));
+        return new float[]{var10, var2};
+    }
+
+    private static boolean method_1603(BlockPos var0) {
+        BlockPos var3 = var0;
+        EnumFacing[] var1;
+        int var2 = (var1 = EnumFacing.values()).length;
+        int var6 = 0;
+
+        for (int var5 = 0; var5 < var2; var5 = ++var6) {
+            EnumFacing var4 = var1[var6];
+            if (!"air".equals(method_1604(var3.offset(var4)))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static String method_1604(BlockPos var0) {
+        return method_1593(BlockPlacer.method_18(var0));
+    }
+
+    private float[] method_1605() {
+        var var2 = this;
+        float var12;
+        float var5 = var12 = this.fov.method_151();
+        var12 = Math.min(var12, 90.0F);
+        YawPitch var10001 = MoveFix.method_2145();
+        float var11 = var10001.floatValue();
+        float var4 = var10001.floatValue2();
+        if (!this.flag2) {
+            BlockPos var26;
+            if (this.bedwarsOnly.method_146()) {
+                if ((var26 = BedWarsObjectives.INSTANCE.method_1546()) == null) {
+                    this.method_1619("no whitelisted bed. disabling.");
+                    return this.method_1608();
+                }
+
+                if (!"bed".equalsIgnoreCase(method_1604(var26))) {
+                    this.method_1619("whitelisted bed pos is stale/not a bed. disabling.");
+                    return this.method_1608();
+                }
+            } else {
+                if ((var26 = this.method_1586(16)) == null) {
+                    this.method_1619("no bed in range. disabling.");
+                    return this.method_1608();
+                }
+
+                if (!"bed".equalsIgnoreCase(method_1604(var26))) {
+                    this.method_1619("findBed returned invalid target. disabling.");
+                    return this.method_1608();
+                }
+            }
+
+            this.method_1619(
+                new StringBuilder()
+                    .insert(0, "bed found at ")
+                    .append(var26.getX())
+                    .append(",")
+                    .append(var26.getY())
+                    .append(",")
+                    .append(var26.getZ())
+                    .toString()
+            );
+            this.blockPos = var26;
+
+            (switch (method_1615(var26)) {
+                case 0, 10 -> {
+                    this.string = "north";
+                    yield this;
+                }
+                case 1, 11 -> {
+                    this.string = "east";
+                    yield this;
+                }
+                case 2, 8 -> {
+                    this.string = "south";
+                    yield this;
+                }
+                case 3, 9 -> {
+                    this.string = "west";
+                    yield this;
+                }
+                default -> {
+                    this.string = "";
+                    yield this;
+                }
+            }).method_1619(new StringBuilder().insert(0, "lockedDirection=").append(this.string).toString());
+            this.flag2 = true;
+        }
+
+        this.method_1620();
+        this.method_1591();
+        int var27 = 0;
+        boolean var6 = false;
+        ArrayList var7 = new ArrayList();
+        ArrayList var8 = new ArrayList();
+        Vec3 var9 = HitVecUtil.method_2133();
+        int var10 = 0;
+
+        for (int var21 = 0; var21 < var2.list.size(); var21 = ++var10) {
+            BedDefender.PlacementStep var3 = var2.list.get(var10);
+            BlockPos var1 = var2.blockPos.add(method_1616(var3.blockPos(), var2.string));
+            if ("air".equals(method_1604(var1))) {
+                var27++;
+                var8.add(var1);
+                boolean var13 = var2.set.contains(var3.string().toLowerCase());
+                var6 |= var13;
+                if (var13 && method_1603(var1) && method_1610(var1)) {
+                    double var14 = var1.getX() + 0.5 - var9.xCoord;
+                    double var16 = var1.getY() + 0.5 - var9.yCoord;
+                    double var18 = var1.getZ() + 0.5 - var9.zCoord;
+                    if (!((var14 = var14 * var14 + var16 * var16 + var18 * var18) > 36.0)) {
+                        var7.add(new BedDefender.PatternBlock(var1, var3.string(), var10, var14));
+                    }
+                }
+            }
+        }
+
+        if (var27 == 0) {
+            var2.method_1619("done (pattern filled).");
+            return var2.method_1608();
+        } else if (!var6) {
+            var2.method_1619("no block left in the hotbar for anything still open (disabling)");
+            return var2.method_1608();
+        } else {
+            HashMap var31 = new HashMap();
+
+            Iterator var29;
+            for (Iterator var22 = var29 = var7.iterator(); var22.hasNext(); var22 = var29) {
+                BedDefender.PatternBlock var28 = (BedDefender.PatternBlock)var29.next();
+                var31.put(var28.blockPos(), method_1612(var28, var8, var9));
+            }
+
+            var7.sort(Comparator.<BedDefender.PatternBlock>comparingInt(var1x -> (Integer)var31.get(var1x.blockPos())).thenComparing(var2.method_1588()));
+            float[] var30;
+            if ((var30 = var2.method_1617(var7, var11, var4, var5, var12)) != null) {
+                return var30;
+            } else {
+                var2.intValue4++;
+                if (var2.stuckTimeout.method_149() > 0 && var2.intValue4 > var2.stuckTimeout.method_149()) {
+                    var2.method_1619("nothing placeable for " + var2.intValue4 + " ticks (disabling)");
+                    return var2.method_1608();
+                } else {
+                    BedDefender var24;
+                    BlockPos var25;
+                    if (!var7.isEmpty()) {
+                        var25 = ((BedDefender.PatternBlock)var7.get(0)).blockPos();
+                        var24 = var2;
+                    } else {
+                        var25 = null;
+                        var24 = var2;
+                    }
+
+                    var24.blockPos3 = var25;
+                    return null;
+                }
+            }
+        }
+    }
+
+    public boolean method_1606() {
+        return this.isToggled();
+    }
+
+    private void method_1607() {
+        this.flag3 = false;
+        MoveFix.method_2147();
+        this.setEnabled(false);
+    }
+
+    private float[] method_1608() {
+        this.flag3 = true;
+        return null;
+    }
+
+    private float[] method_1609(BedDefender.PatternBlock var1, float var2, float var3, float var4, float var5) {
+        var var26 = this;
+        BlockPos var78 = var1.blockPos();
+        String var6 = var1.string();
+        float[] var9;
+        if ((var9 = this.method_1599(var2, var3, var78, var6, var2, var3)) != null) {
+            return var9[1] == -999.0F ? this.method_1598(var2, var3, var2, var3) : var9;
+        } else {
+            EnumFacing[] var7 = new EnumFacing[]{EnumFacing.DOWN, EnumFacing.UP, EnumFacing.SOUTH, EnumFacing.NORTH, EnumFacing.WEST, EnumFacing.EAST};
+            int[] var8 = new int[]{0, 0, 0, 0, 1, -1};
+            int[] var79 = new int[]{1, -1, 0, 0, 0, 0};
+            int[] var10 = new int[]{0, 0, -1, 1, 0, 0};
+            Vec3 var11 = HitVecUtil.method_2133();
+            float var12 = method_1595(var2);
+            float var13 = var3;
+            float var14 = method_1595(mc.thePlayer.rotationYaw);
+            float var15 = mc.thePlayer.rotationPitch;
+            double var16 = 0.05;
+            double var18 = 0.2;
+            double var20 = 0.2;
+            double var22 = 1.0 - var16 - 0.001;
+            var16 += 0.001;
+            int var24 = (int)Math.round(1.0 / var18);
+            ArrayList<Object[]> var25 = new ArrayList<>((var24 + 1) * (var24 + 1) * 6);
+            int var76 = 0;
+
+            for (int var75 = 0; var75 < 6; var75 = ++var76) {
+                EnumFacing var27 = var7[var76];
+                BlockPos var28;
+                String var29;
+                if (!(var29 = method_1604(var28 = var78.add(var8[var76], var79[var76], var10[var76]))).equals("air")
+                    && (!var26.onlyTopBeds.method_146() || !var29.equals("bed") || var27 == EnumFacing.UP)) {
+                    int var30 = 0;
+
+                    for (int var74 = 0; var74 <= var24; var74 = ++var30) {
+                        boolean var44;
+                        if ((var30 & 1) == 0) {
+                            var44 = true;
+                        } else {
+                            var44 = false;
+                        }
+
+                        boolean var31 = var44;
+                        double var32;
+                        if ((var32 = var30 * var18 + method_1589(-var18 * var20, var18 * var20)) < 0.0) {
+                            var32 = 0.0;
+                        } else if (var32 > 1.0) {
+                            var32 = 1.0;
+                        }
+
+                        int var34 = 0;
+
+                        for (int var73 = 0; var73 <= var24; var73 = ++var34) {
+                            double var35;
+                            boolean var45;
+                            if ((var35 = var34 * var18 + method_1589(-var18 * var20, var18 * var20)) < 0.0) {
+                                var35 = 0.0;
+                                var45 = var31;
+                            } else {
+                                if (var35 > 1.0) {
+                                    var35 = 1.0;
+                                }
+
+                                var45 = var31;
+                            }
+
+                            double var46;
+                            if (var45) {
+                                var46 = var35;
+                            } else {
+                                var46 = 1.0 - var35;
+                            }
+
+                            double var39;
+                            double var41;
+                            Vec3 var54;
+                            if (var76 < 2) {
+                                var35 = var28.getX() + var46;
+                                var41 = var28.getZ() + var32;
+                                double var88 = var28.getY();
+                                double var50;
+                                double var52;
+                                if (var76 != 1) {
+                                    double var48 = var88;
+                                    var52 = var16;
+                                    var50 = var48;
+                                } else {
+                                    var52 = var22;
+                                    var50 = var88;
+                                }
+
+                                var39 = var50 + var52;
+                                var54 = var11;
+                            } else if (var76 < 4) {
+                                var35 = var28.getX() + var46;
+                                var39 = var28.getY() + var32;
+                                double var89 = var28.getZ();
+                                double var57;
+                                double var59;
+                                if (var76 != 2) {
+                                    double var55 = var89;
+                                    var59 = var16;
+                                    var57 = var55;
+                                } else {
+                                    var59 = var22;
+                                    var57 = var89;
+                                }
+
+                                var41 = var57 + var59;
+                                var54 = var11;
+                            } else {
+                                var41 = var28.getZ() + var46;
+                                var39 = var28.getY() + var32;
+                                double var90 = var28.getX();
+                                double var63;
+                                double var65;
+                                if (var76 != 5) {
+                                    double var61 = var90;
+                                    var65 = var16;
+                                    var63 = var61;
+                                } else {
+                                    var65 = var22;
+                                    var63 = var90;
+                                }
+
+                                var35 = var63 + var65;
+                                var54 = var11;
+                            }
+
+                            float[] var91 = method_1602(var54, var35, var39, var41);
+                            float var43 = var91[0];
+                            float var37 = var91[1];
+                            if (!(Math.abs(method_1611(var14, var43)) > var4) && !(Math.abs(var37 - var15) > var5) && !(Math.abs(var37) > 90.0F)) {
+                                double var92 = Math.abs((double)method_1611(var12, var43)) + Math.abs((double)(var37 - var13));
+                                double var69;
+                                double var71;
+                                if (var27 != EnumFacing.UP) {
+                                    double var67 = var92;
+                                    var71 = 0.0;
+                                    var69 = var67;
+                                } else {
+                                    var71 = -0.25;
+                                    var69 = var92;
+                                }
+
+                                var35 = var69 + var71;
+                                var25.add(new Object[]{var35, var43, var37});
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (var25.isEmpty()) {
+                var26.method_1619("no aim candidates (FOV/angles?)");
+                return null;
+            } else {
+                var25.sort(Comparator.comparingDouble(var0 -> (Double)var0[0]));
+                Iterator var77 = var25.iterator();
+
+                while (var77.hasNext()) {
+                    Object[] var81;
+                    float var82 = (Float)(var81 = (Object[])var77.next())[1];
+                    float var83 = (Float)var81[2];
+                    float var84 = method_1600(var82, var2);
+                    float[] var85;
+                    if ((var85 = var26.method_1599(var84, var83, var78, var6, var2, var3)) != null) {
+                        if (var85[1] == -999.0F) {
+                            return var26.method_1598(var2, var3, var84, var83);
+                        }
+
+                        return var85;
+                    }
+                }
+
+                return null;
+            }
+        }
+    }
+
+    private static boolean method_1610(BlockPos var0) {
+        return mc.theWorld.checkNoEntityCollision(BlockPlacer.axisAlignedBB.offset(var0.getX(), var0.getY(), var0.getZ()));
+    }
+
+    private static float method_1611(float var0, float var1) {
+        float var5;
+        float var2 = var5 = var1 - var0;
+
+        while (var2 <= -180.0F) {
+            var2 = var5 += 360.0F;
+        }
+
+        float var3 = var5;
+
+        while (var3 > 180.0F) {
+            var3 = var5 -= 360.0F;
+        }
+
+        return var5;
+    }
+
+    private static int method_1612(BedDefender.PatternBlock var0, List<BlockPos> var1, Vec3 var2) {
+        BedDefender.PatternBlock var3 = var0;
+        AxisAlignedBB var5 = new AxisAlignedBB(
+            var0.blockPos().getX(),
+            var0.blockPos().getY(),
+            var0.blockPos().getZ(),
+            var0.blockPos().getX() + 1,
+            var0.blockPos().getY() + 1,
+            var0.blockPos().getZ() + 1
+        );
+        int var4 = 0;
+        Iterator var9 = var1.iterator();
+
+        label24:
+        while (true) {
+            Iterator var6 = var9;
+
+            while (var6.hasNext()) {
+                BlockPos var7;
+                if ((var7 = (BlockPos)var9.next()).equals(var3.blockPos())) {
+                    var6 = var9;
+                } else {
+                    Vec3 var8 = new Vec3(var7.getX() + 0.5, var7.getY() + 0.5, var7.getZ() + 0.5);
+                    if (!(var2.squareDistanceTo(var8) <= var3.doubleValue())) {
+                        if (var5.calculateIntercept(var2, var8) != null) {
+                            var4++;
+                        }
+                        continue label24;
+                    }
+
+                    var6 = var9;
+                }
+            }
+
+            return var4;
+        }
+    }
+
+    private static String method_1613(BlockPos var0) {
+        return var0.getX() + "," + var0.getY() + "," + var0.getZ();
+    }
+
+    @Override
+    public void onEnable() {
+        this.list = map2.getOrDefault(this.defense.getValue().getDisplayName(), new ArrayList<>());
+        BedDefender var2;
+        if (!this.list.isEmpty()) {
+            this.method_1619(
+                new StringBuilder()
+                    .insert(0, "enabled. defense='")
+                    .append(this.defense.getValue().getDisplayName())
+                    .append("' steps=")
+                    .append(this.list.size())
+                    .toString()
+            );
+            if (!this.method_1587(this.list)) {
+                this.method_1619("no required blocks for selected defense in hotbar (disabling)");
+                this.flag3 = true;
+            }
+
+            var2 = this;
+        } else {
+            this.method_1619("enabled, but no defenses loaded.");
+            var2 = this;
+        }
+
+        var2.blockPos3 = null;
+        this.blockPos2 = null;
+        this.intValue2 = 0;
+        this.intValue4 = 0;
+        this.map.clear();
+        this.set.clear();
+        this.flag2 = false;
+        this.flag = false;
+        this.string = "";
+        this.intValue5 = this.delayAfterAiming.method_149();
+        this.map3.clear();
+    }
+
+    private boolean method_1614(BlockPos var1, EnumFacing var2) {
+        return "air".equalsIgnoreCase(method_1604(var1.offset(var2)));
+    }
+
+    private static int method_1615(BlockPos var0) {
+        IBlockState var5;
+        if ((var5 = BlockPlacer.method_23(var0)) != null && var5.getBlock() instanceof BlockBed) {
+            int var10000 = var5.getValue(BlockBed.FACING).getHorizontalIndex();
+            int var3;
+            byte var4;
+            if (var5.getValue(BlockBed.PART) != EnumPartType.HEAD) {
+                int var2 = var10000;
+                var4 = 0;
+                var3 = var2;
+            } else {
+                var4 = 8;
+                var3 = var10000;
+            }
+
+            return var3 | var4;
+        } else {
+            return -1;
+        }
+    }
+
+    @EventHandler
+    public void onPlayerUpdate(PlayerUpdateEvent var1) {
+        if (mc.thePlayer != null && mc.theWorld != null) {
+            if (this.flag3) {
+                this.method_1607();
+            } else {
+                this.method_1590();
+                float[] var2 = this.method_1605();
+                if (this.flag3) {
+                    this.method_1607();
+                } else if (var2 == null) {
+                    MoveFix.method_2147();
+                } else {
+                    MoveFix.method_2150(new YawPitch(var2[0], var2[1]), this.moveFix.getValue());
+                }
+            }
+        }
+    }
+
+    private static BlockPos method_1616(BlockPos var0, String var1) {
+        int var8; // declared by DeclareMissing
+        int var4;
+        int var5;
+        byte var6;
+        label28: {
+            var8 = var0.getX();
+            var5 = var0.getY();
+            var4 = var0.getZ();
+            byte var2 = -1;
+            switch (var1.hashCode()) {
+                case 3105789:
+                    if (var1.equals("east")) {
+                        var2 = 2;
+                        var6 = 2;
+                        break label28;
+                    }
+                    break;
+                case 3645871:
+                    if (var1.equals("west")) {
+                        var2 = 3;
+                    }
+                    break;
+                case 105007365:
+                    if (var1.equals("north")) {
+                        boolean var10 = false;
+                        var6 = 0;
+                        break label28;
+                    }
+                    break;
+                case 109627853:
+                    if (var1.equals("south")) {
+                        boolean var9 = true;
+                        var6 = 1;
+                        break label28;
+                    }
+            }
+
+            var6 = var2;
+        }
+
+        switch (var6) {
+            case 0:
+                return new BlockPos(var8, var5, var4);
+            case 1:
+                return new BlockPos(-var8, var5, -var4);
+            case 2:
+                return new BlockPos(-var4, var5, var8);
+            case 3:
+                return new BlockPos(var4, var5, -var8);
+            default:
+                return var0;
+        }
+    }
+
+    private float[] method_1617(List<BedDefender.PatternBlock> var1, float var2, float var3, float var4, float var5) {
+        client.onyx.module.combat.BedDefender.PatternBlock var14; // declared by DeclareMissing
+        BedDefender var6;
+        BedDefender.PatternBlock var11;
+        label58: {
+            var6 = this;
+            var14 = null;
+            if (this.blockPos2 != null) {
+                Iterator var7 = var1.iterator();
+
+                while (var7.hasNext()) {
+                    BedDefender.PatternBlock var8;
+                    if ((var8 = (BedDefender.PatternBlock)var7.next()).blockPos().equals(var6.blockPos2)) {
+                        var14 = var8;
+                        var11 = var8;
+                        break label58;
+                    }
+                }
+            }
+
+            var11 = var14;
+        }
+
+        if (var11 != null && var6.intValue2 > 0) {
+            var6.intValue2--;
+            float[] var16;
+            if ((var16 = var6.method_1609(var14, var2, var3, var4, var5)) != null) {
+                var6.blockPos3 = var14.blockPos();
+                var6.intValue4 = 0;
+                return var16;
+            }
+
+            var6.method_1619(new StringBuilder().insert(0, "lost the aim on ").append(method_1613(var14.blockPos())).append(", moving on").toString());
+            var6.method_1592(var14.blockPos());
+        }
+
+        var6.blockPos2 = null;
+        int var17 = var6.targetsPerTick.method_149();
+        int var18 = 0;
+        Iterator var15;
+        Iterator var12 = var15 = var1.iterator();
+
+        int var13;
+        while (true) {
+            if (!var12.hasNext()) {
+                var13 = var18;
+                break;
+            }
+
+            BedDefender.PatternBlock var9 = (BedDefender.PatternBlock)var15.next();
+            if (var6.map.containsKey(var9.blockPos())) {
+                var12 = var15;
+            } else {
+                if (var18 >= var17) {
+                    var13 = var18;
+                    break;
+                }
+
+                var18++;
+                float[] var10;
+                if ((var10 = var6.method_1609(var9, var2, var3, var4, var5)) != null) {
+                    var6.blockPos2 = var9.blockPos();
+                    var6.intValue2 = var6.targetLock.method_149();
+                    var6.blockPos3 = var9.blockPos();
+                    var6.intValue4 = 0;
+                    return var10;
+                }
+
+                var6.method_1592(var9.blockPos());
+                var12 = var15;
+            }
+        }
+
+        if (var13 == 0 && !var1.isEmpty()) {
+            var6.map.clear();
+        }
+
+        return null;
+    }
+
+    private static void method_1618(boolean var0) {
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), var0);
+    }
+
+    private void method_1619(String var1) {
+        if (this.debugLogs.method_146()) {
+            Command.method_350(new StringBuilder().insert(0, "[beddef] ").append(var1).toString());
+        }
+    }
+
+    private void method_1620() {
+        this.map.entrySet().removeIf(var0 -> {
+            var0.setValue(var0.getValue() - 1);
+            return var0.getValue() <= 0;
+        });
+    }
+
+    public BedDefender() {
+        super("BedDefender", "Walls your bed in with a preset defense pattern", Category.COMBAT);
+    }
+
+    public static enum BreakOrder implements NamedEnum {
+        BOTTOM_UP("Bottom Up"),
+        FURTHEST("Furthest"),
+        NEAREST("Nearest"),
+        PATTERN("Pattern");
+
+        private final String string;
+
+        @Override
+        public String getDisplayName() {
+            return this.string;
+        }
+
+        private BreakOrder(String var3) {
+            this.string = var3;
+        }
+    }
+
+    public static enum DefensePattern implements NamedEnum {
+        END_WOOL_CORNERS("EndWoolCorners"),
+        END_WOOL_CORNERS_2("EndWoolCorners2"),
+        END_GLASS_NO_CORNERS("EndGlassNoCorners"),
+        WOOD_WOOL_CORNERS("WoodWoolCorners"),
+        END_GLASS_WOOL("EndGlassWool"),
+        WOOL_1_LAYER("Wool1Layer"),
+        END_WOOD_LONG_CORNERS("EndWoodLongCorners"),
+        END_WOOL_LONG("EndWoolLong");
+
+        private final String string;
+
+        private DefensePattern(String var3) {
+            this.string = var3;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return this.string;
+        }
+    }
+
+    private record PatternBlock(BlockPos blockPos, String string, int intValue, double doubleValue) {
+    }
+
+    public record PlacementStep(String string, BlockPos blockPos) {
+    }
+}

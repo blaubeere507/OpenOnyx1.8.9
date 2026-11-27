@@ -1,0 +1,221 @@
+package client.onyx.proxy;
+
+import client.onyx.Onyx;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+public final class HttpProxyHandler extends ChannelDuplexHandler {
+    private static final byte[] byteValueArray = new byte[]{13, 10, 13, 10};
+    private final InetSocketAddress inetSocketAddress;
+    private final String string2;
+    private final int intValue;
+    private final String string;
+    private final String string3;
+    private InetSocketAddress inetSocketAddress2;
+    private ByteBuf byteBuf;
+    private ScheduledFuture<?> scheduledFuture;
+    private ChannelPromise channelPromise;
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext var1) {
+        if (this.byteBuf != null) {
+            this.byteBuf.release();
+            this.byteBuf = null;
+        }
+
+        this.method_225();
+    }
+
+    private void method_225() {
+        if (this.scheduledFuture != null) {
+            this.scheduledFuture.cancel(false);
+            this.scheduledFuture = null;
+        }
+    }
+
+    public HttpProxyHandler(InetSocketAddress var1, String var2, int var3, String var4, String var5) {
+        this.inetSocketAddress = var1;
+        this.string2 = var2 == null ? "" : var2;
+        this.intValue = var3;
+        this.string = var4 == null ? "" : var4;
+        this.string3 = var5 == null ? "" : var5;
+    }
+
+    // $VF: Could not inline inconsistent finally blocks
+    // Please report this to the Vineflower issue tracker, at https://github.com/Vineflower/vineflower/issues with a copy of the class file (if you have the rights to distribute it!)
+    @Override
+    public void channelRead(ChannelHandlerContext var1, Object var2) {
+        // hand-fixed: the obfuscator swapped the "this" and message slots
+        if (var2 instanceof ByteBuf var3) {
+            try {
+                if (this.byteBuf == null) {
+                    this.byteBuf = var1.alloc().buffer(var3.readableBytes());
+                }
+
+                this.byteBuf.writeBytes(var3);
+            } catch (Throwable var8) {
+                var3.release();
+                throw var8;
+            }
+
+            var3.release();
+            int var10;
+            if ((var10 = method_228(this.byteBuf)) >= 0) {
+                int var12;
+                if ((var12 = method_227(this.byteBuf.toString(this.byteBuf.readerIndex(), var10 - this.byteBuf.readerIndex(), StandardCharsets.US_ASCII)))
+                        >= 200
+                    && var12 < 300) {
+                    this.byteBuf.skipBytes(var10 - this.byteBuf.readerIndex() + byteValueArray.length);
+                    ByteBuf var6;
+                    if (this.byteBuf.isReadable()) {
+                        var6 = this.byteBuf.readSlice(this.byteBuf.readableBytes()).retain();
+                    } else {
+                        var6 = null;
+                    }
+
+                    this.method_225();
+                    Onyx.LOGGER.info("HTTP proxy tunnel established to {}:{}", this.string2, this.intValue);
+                    var1.fireChannelActive();
+                    this.channelPromise.trySuccess();
+                    if (var6 != null) {
+                        var1.fireChannelRead(var6);
+                    }
+
+                    var1.pipeline().remove(this);
+                } else {
+                    this.method_226(
+                        var1, new IllegalStateException(new StringBuilder().insert(0, "HTTP proxy CONNECT failed (").append(var12).append(")").toString())
+                    );
+                }
+            }
+        } else {
+            var1.fireChannelRead(var2);
+        }
+    }
+
+    private void method_226(ChannelHandlerContext var1, Throwable var2) {
+        this.method_225();
+        Onyx.LOGGER.warn("HTTP proxy tunnel to {}:{} failed: {}", this.string2, this.intValue, var2.getMessage());
+        if (this.channelPromise != null) {
+            this.channelPromise.tryFailure(var2);
+        }
+
+        var1.close();
+    }
+
+    private static int method_227(String var0) {
+        String[] var3;
+        if ((var3 = var0.split("\\s+", 3)).length < 2) {
+            return 0;
+        } else {
+            try {
+                return Integer.parseInt(var3[1]);
+            } catch (NumberFormatException var2) {
+                return 0;
+            }
+        }
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext var1) {
+        this.method_229(var1);
+    }
+
+    private static int method_228(ByteBuf var0) {
+        ByteBuf var3 = var0;
+
+        int var1;
+        for (int var6 = var1 = var0.readerIndex(); var6 <= var3.writerIndex() - byteValueArray.length; var6 = ++var1) {
+            boolean var2 = true;
+            int var7 = 0;
+            int var5 = 0;
+
+            boolean var4;
+            while (true) {
+                if (var5 >= byteValueArray.length) {
+                    var4 = var2;
+                    break;
+                }
+
+                if (var3.getByte(var1 + var7) != byteValueArray[var7]) {
+                    var2 = false;
+                    var4 = false;
+                    break;
+                }
+
+                var5 = ++var7;
+            }
+
+            if (var4) {
+                return var1;
+            }
+        }
+
+        return -1;
+    }
+
+    @Override
+    public void connect(ChannelHandlerContext var1, SocketAddress var2, SocketAddress var3, ChannelPromise var4) {
+        if (var2 instanceof InetSocketAddress var5) {
+            this.inetSocketAddress2 = var5;
+            this.channelPromise = var4;
+            this.scheduledFuture = var1.executor()
+                .schedule(() -> this.method_226(var1, new IllegalStateException("HTTP proxy connection timed out")), 10L, TimeUnit.SECONDS);
+            var1.connect(this.inetSocketAddress, var3, var1.newPromise()).addListener(var2x -> {
+                if (!var2x.isSuccess()) {
+                    this.method_226(var1, var2x.cause());
+                }
+            });
+        } else {
+            var4.tryFailure(new IllegalArgumentException("HTTP proxy requires an internet address"));
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext var1, Throwable var2) {
+        this.method_226(var1, var2);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext var1) {
+        this.method_226(var1, new IllegalStateException("HTTP proxy closed the connection"));
+        var1.fireChannelInactive();
+    }
+
+    private void method_229(ChannelHandlerContext var1) {
+        String var5;
+        if (!this.string2.isBlank()) {
+            var5 = this.string2;
+        } else {
+            var5 = this.inetSocketAddress2.getAddress().getHostAddress();
+        }
+
+        String var6 = var5;
+        if (var5.indexOf(58) >= 0) {
+            var6 = new StringBuilder().insert(0, "[").append(var5).append("]").toString();
+        }
+
+        String var7 = new StringBuilder().insert(0, var6).append(":").append(this.intValue).toString();
+        String var8 = new StringBuilder().insert(0, "CONNECT ").append(var7).append(" HTTP/1.1\r\nHost: ").append(var7).append("\r\n").toString();
+        if (!this.string.isBlank()) {
+            String var3 = new StringBuilder().insert(0, this.string).append(":").append(this.string3).toString();
+            var8 = new StringBuilder()
+                .insert(0, var8)
+                .append("Proxy-Authorization: Basic ")
+                .append(Base64.getEncoder().encodeToString(var3.getBytes(StandardCharsets.UTF_8)))
+                .append("\r\n")
+                .toString();
+        }
+
+        var1.writeAndFlush(Unpooled.copiedBuffer(new StringBuilder().insert(0, var8).append("\r\n").toString(), StandardCharsets.US_ASCII));
+    }
+}

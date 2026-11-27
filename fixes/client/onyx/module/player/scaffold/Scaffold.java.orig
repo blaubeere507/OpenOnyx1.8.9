@@ -1,0 +1,677 @@
+package client.onyx.module.player.scaffold;
+
+import client.onyx.event.impl.MovementInputEvent;
+import client.onyx.event.impl.PostTickEvent;
+import client.onyx.event.impl.Render2DEvent;
+import client.onyx.event.impl.WorldLoadEvent;
+import client.onyx.module.Category;
+import client.onyx.module.Module;
+import client.onyx.module.movement.safewalk.SafeWalk;
+import client.onyx.module.player.scaffold.feature.AccelerationSettings;
+import client.onyx.module.player.scaffold.feature.AutoBlockSettings;
+import client.onyx.module.player.scaffold.feature.ClutchSettings;
+import client.onyx.module.player.scaffold.feature.PredictedPlacement;
+import client.onyx.module.player.scaffold.feature.PredictionSettings;
+import client.onyx.module.player.scaffold.feature.ScaffoldPredictor;
+import client.onyx.module.player.scaffold.feature.SneakController;
+import client.onyx.module.player.scaffold.feature.SpeedSettings;
+import client.onyx.module.player.scaffold.feature.SprintControlSettings;
+import client.onyx.module.player.scaffold.feature.StrafeSettings;
+import client.onyx.module.player.scaffold.sprint.WatchdogSprintMode;
+import client.onyx.module.player.scaffold.technique.BreezilyTechnique;
+import client.onyx.module.player.scaffold.technique.DownSettings;
+import client.onyx.module.player.scaffold.technique.ExpandTechnique;
+import client.onyx.module.player.scaffold.technique.GodBridgeTechnique;
+import client.onyx.module.player.scaffold.technique.HypixelKeepYTechnique;
+import client.onyx.module.player.scaffold.technique.HypixelSprintTechnique;
+import client.onyx.module.player.scaffold.technique.NormalTechnique;
+import client.onyx.module.player.scaffold.technique.ScaffoldTechnique;
+import client.onyx.module.player.scaffold.technique.SneakSettings;
+import client.onyx.module.player.scaffold.technique.TellySettings;
+import client.onyx.placement.PlacementTarget;
+import client.onyx.rotation.Rotation;
+import client.onyx.rotation.RotationManager;
+import client.onyx.rotation.RotationRequest;
+import client.onyx.setting.Mode;
+import client.onyx.setting.ModeSetting;
+import client.onyx.setting.NamedEnum;
+import client.onyx.setting.NoneMode;
+import client.onyx.setting.Setting;
+import client.onyx.setting.impl.BooleanSetting;
+import client.onyx.setting.impl.EnumSetting;
+import client.onyx.setting.impl.NumberSetting;
+import client.onyx.setting.impl.RangeSetting;
+import client.onyx.util.ChainedComparator;
+import client.onyx.util.Importance;
+import client.onyx.util.geometry.Ray;
+import client.onyx.util.item.BlockItemUtil;
+import client.onyx.util.player.BlockPlacer;
+import client.onyx.util.player.HotbarManager;
+import client.onyx.util.player.MovementInputState;
+import client.onyx.util.player.MovementPredictor;
+import client.onyx.util.player.SwingMode;
+import client.onyx.util.world.BlockSelection;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+import net.minecraft.util.EnumFacing.Axis;
+
+public class Scaffold extends Module {
+    public static final Scaffold INSTANCE = new Scaffold();
+    private static final ChainedComparator<ItemStack> chainedComparator2 = new ChainedComparator<>(
+        BlockSelection.comparator4,
+        BlockSelection.comparator3,
+        BlockSelection.comparator5,
+        BlockSelection.comparator,
+        BlockSelection.method_1982(true),
+        BlockSelection.comparator2,
+        BlockSelection.method_1982(false)
+    );
+    public static final ChainedComparator<ItemStack> chainedComparator = new ChainedComparator<>(
+        BlockSelection.comparator4,
+        BlockSelection.comparator3,
+        BlockSelection.comparator5,
+        BlockSelection.comparator,
+        BlockSelection.method_1982(true),
+        BlockSelection.comparator6,
+        BlockSelection.method_1982(false)
+    );
+    private static final int INT_11 = 1;
+    public RangeSetting rangeSetting = RangeSetting.method_90("Delay", 0, 0, 0, 40).method_94(" ticks").visibleWhen(Setting.booleanSupplier);
+    public NumberSetting minDistance = new NumberSetting("Min distance", 0.0, 0.0, 0.25, 0.01).visibleWhen(Setting.booleanSupplier);
+    public AutoBlockSettings autoBlockSettings;
+    public PredictionSettings predictionSettings;
+    public ModeSetting<ScaffoldTechnique> technique;
+    public EnumSetting<Scaffold.SameYMode> sameY;
+    public BooleanSetting spaceClimb;
+    public ModeSetting<Mode> modeSetting;
+    public ModeSetting<Mode> modeSetting2;
+    public EnumSetting<SwingMode> swing;
+    public ScaffoldRotationSettings scaffoldRotationSettings;
+    public SprintControlSettings sprintControlSettings;
+    public AccelerationSettings accelerationSettings;
+    public StrafeSettings strafeSettings;
+    public SpeedSettings speedSettings;
+    public ClutchSettings clutchSettings;
+    public BooleanSetting edgeSafety;
+    public BooleanSetting autoF5;
+    public BooleanSetting disableOnDeath;
+    private transient MovementInputState movementInputState;
+    private transient boolean flag;
+    private transient boolean flag2;
+    private transient int intValue;
+    private transient int intValue2;
+    private transient int intValue3;
+    private transient boolean flag3;
+    private transient boolean flag4;
+    private transient PlacementTarget placementTarget;
+    private transient int intValue4;
+    private transient Block block;
+    private transient int intValue5;
+    private transient int intValue6;
+    private transient Ray ray;
+
+    private void method_1653() {
+        int var10; // declared by DeclareMissing
+        if (this.method_1667()) {
+            if (mc.thePlayer.onGround) {
+                Scaffold var7;
+                boolean var8;
+                label68: {
+                    var10 = new BlockPos(mc.thePlayer).getY() - 1;
+                    Scaffold var6;
+                    if (method_1658()) {
+                        var6 = this;
+                    } else if (this.flag3) {
+                        var6 = this;
+                    } else {
+                        if (var10 == this.intValue5 + 1) {
+                            var8 = true;
+                            var7 = this;
+                            break label68;
+                        }
+
+                        var6 = this;
+                    }
+
+                    var8 = false;
+                    var7 = var6;
+                }
+
+                var7.flag4 = var8;
+                if (!this.flag4) {
+                    this.intValue5 = var10;
+                }
+
+                this.flag2 = false;
+                this.flag3 = false;
+                this.intValue3++;
+            }
+
+            if (mc.gameSettings.keyBindJump.isKeyDown()) {
+                this.intValue6 = new BlockPos(mc.thePlayer).getY();
+                this.intValue3 = 2;
+            }
+
+            PlacementTarget var11 = this.placementTarget;
+            ScaffoldTechnique var4 = this.method_1661();
+            Rotation var3 = this.method_1669().method_1050();
+            MovingObjectPosition var14 = var4.method_1728(var11, var3);
+            int var13 = this.rangeSetting.method_95();
+            boolean var2 = ScaffoldMovement.method_1716(mc.thePlayer.inventory.getCurrentItem());
+            if (AutoBlockSettings.autoBlockSettings.alwaysHoldBlock.getValue()) {
+                var2 = this.method_1671(var2);
+            }
+
+            if (var11 != null && var14 != null) {
+                if (var11.method_51(var14) && this.method_1666(var14)) {
+                    if (!AutoBlockSettings.autoBlockSettings.alwaysHoldBlock.getValue()) {
+                        var2 = this.method_1671(var2);
+                    }
+
+                    if (var2) {
+                        boolean[] var12 = new boolean[]{false};
+                        Vec3 var9;
+                        if (this.ray != null) {
+                            var9 = PredictionSettings.predictionSettings.method_1784(this.ray);
+                        } else {
+                            var9 = null;
+                        }
+
+                        BlockPlacer.method_24(var14, () -> {
+                            this.method_1657(var11.blockPos2());
+                            this.placementTarget = null;
+                            var12[0] = true;
+                            return true;
+                        }, () -> true, this.swing.getValue());
+                        if (var12[0]) {
+                            if (this.method_1668(var11.blockPos2())) {
+                                this.flag2 = true;
+                            }
+
+                            PredictionSettings.predictionSettings.method_1781(this.ray, var9);
+                            this.intValue2 = Math.max(0, var13 - 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        this.method_1673();
+        this.method_1659();
+    }
+
+    private List<Scaffold.PlaceInfo> method_1654() {
+        ArrayList var1 = new ArrayList(9);
+        if (!this.method_1667()) {
+            return var1;
+        } else {
+            int var5 = 0;
+
+            for (int var4 = 0; var4 <= 8; var4 = ++var5) {
+                ItemStack var3;
+                if (ScaffoldMovement.method_1716(var3 = mc.thePlayer.inventory.getStackInSlot(var5))) {
+                    var1.add(new Scaffold.PlaceInfo(var5, var3));
+                }
+            }
+
+            return var1;
+        }
+    }
+
+    private Integer method_1655() {
+        List var4 = this.method_1654();
+        int var2 = AutoBlockSettings.autoBlockSettings.doNotUseBelowCount.method_149();
+        Comparator var3 = (var0, var1) -> chainedComparator2.compare(var0.itemStack(), var1.itemStack());
+        Scaffold.PlaceInfo var5;
+        return (
+                    var5 = var4.stream()
+                        .filter(var1 -> var1.itemStack().stackSize > var2)
+                        .max(var3)
+                        .orElseGet(() -> (Scaffold.PlaceInfo)var4.stream().max(var3).orElse(null))
+                )
+                != null
+            ? var5.intValue()
+            : null;
+    }
+
+    private static BlockPos method_1656(BlockPos var0, int var1) {
+        return new BlockPos(var0.getX(), var1, var0.getZ());
+    }
+
+    @EventHandler
+    private void onWorldLoad(WorldLoadEvent var1) {
+        this.method_1659();
+        this.flag = false;
+        if (this.autoF5.method_146()) {
+            this.method_1672();
+        }
+    }
+
+    private void method_1657(BlockPos var1) {
+        if (!this.method_1668(var1)) {
+            BlockSlotPicker.method_1705(var1);
+        }
+
+        SneakSettings.sneakSettings.method_1767();
+        SprintControlSettings.sprintControlSettings.method_1778();
+        HypixelKeepYTechnique.hypixelKeepYTechnique.method_1726();
+    }
+
+    private static boolean method_1658() {
+        return mc.gameSettings.keyBindJump.isKeyDown();
+    }
+
+    private void method_1659() {
+        this.intValue2 = 0;
+        BlockSlotPicker.method_1703();
+        PredictionSettings.predictionSettings.method_1783();
+        HotbarManager.INSTANCE.method_1976(this);
+        this.block = null;
+        this.intValue4 = 0;
+        this.placementTarget = null;
+        this.flag2 = false;
+        this.flag4 = false;
+        this.flag3 = false;
+    }
+
+    private boolean method_1660() {
+        return TellySettings.tellySettings.method_61()
+            && !this.flag2
+            && !this.flag4
+            && MovementPredictor.method_1896(mc.thePlayer)
+            && !mc.thePlayer.onGround
+            && mc.thePlayer.motionY <= 0.0
+            && mc.thePlayer.posY >= this.intValue5 + 2.0;
+    }
+
+    private ScaffoldTechnique method_1661() {
+        return this.technique.method_68();
+    }
+
+    private BlockPos method_1662() {
+        if (!this.method_1660()) {
+            return null;
+        } else {
+            BlockPos var2;
+            return (var2 = BlockSlotPicker.method_1710()) != null && var2.getY() == this.intValue5 ? var2.up() : null;
+        }
+    }
+
+    @EventHandler
+    private void onRender2D(Render2DEvent var1) {
+        if (this.method_1667()) {
+            ItemStack var2;
+            Scaffold var6;
+            Integer var8;
+            if ((var8 = this.method_1655()) == null) {
+                this.block = null;
+                var2 = new ItemStack(Blocks.sandstone, 64);
+                var6 = this;
+            } else {
+                var2 = mc.thePlayer.inventory.getStackInSlot(var8);
+                this.block = BlockItemUtil.method_1989(var2);
+                var6 = this;
+            }
+
+            Ray var9 = var6.ray;
+            Vec3 var3;
+            if ((var3 = PredictionSettings.predictionSettings.method_1780(var9)) == null) {
+                var3 = MovementPredictor.method_1899(mc.thePlayer);
+            }
+
+            boolean var7;
+            if (SneakSettings.sneakSettings.method_61() && SneakSettings.sneakSettings.method_1768(MovementPredictor.method_1885(mc.thePlayer))) {
+                var7 = true;
+            } else {
+                var7 = false;
+            }
+
+            ScaffoldTechnique var5;
+            this.placementTarget = (var5 = this.method_1661()).method_1727(var3, var7, var9, var2);
+            Rotation var10;
+            if ((var10 = var5.method_1735(this.placementTarget)) != null) {
+                RotationRequest var11 = var5.method_1725(var10, this.scaffoldRotationSettings, this.scaffoldRotationSettings.considerInventory.getValue());
+                RotationManager.INSTANCE
+                    .method_1028(
+                        this.scaffoldRotationSettings.method_1713(ClutchSettings.clutchSettings.method_1774(var11)), Importance.IMPORTANT_FOR_PLAYER_LIFE, this
+                    );
+            }
+        }
+    }
+
+    public int method_1663() {
+        if (!this.method_1667()) {
+            return 0;
+        } else {
+            int var5 = 0;
+            Iterator var2;
+            if (AutoBlockSettings.autoBlockSettings.method_61()) {
+                for (Iterator var4 = var2 = this.method_1654().iterator(); var4.hasNext(); var4 = var2) {
+                    Scaffold.PlaceInfo var3 = (Scaffold.PlaceInfo)var2.next();
+                    var5 += method_1676(var3.itemStack());
+                }
+            } else {
+                var5 += method_1676(mc.thePlayer.inventory.getCurrentItem());
+            }
+
+            return var5;
+        }
+    }
+
+    private Scaffold() {
+        super("Scaffold", "Places blocks under you", Category.PLAYER);
+        this.autoBlockSettings = AutoBlockSettings.autoBlockSettings;
+        this.predictionSettings = PredictionSettings.predictionSettings;
+        this.technique = new ModeSetting<>(
+            "Technique",
+            NormalTechnique.normalTechnique,
+            NormalTechnique.normalTechnique,
+            ExpandTechnique.expandTechnique,
+            GodBridgeTechnique.godBridgeTechnique,
+            BreezilyTechnique.breezilyTechnique,
+            HypixelKeepYTechnique.hypixelKeepYTechnique,
+            HypixelSprintTechnique.hypixelSprintTechnique
+        );
+        this.sameY = new EnumSetting<>("Same Y", Scaffold.SameYMode.OFF);
+        this.spaceClimb = new BooleanSetting("Space climb", false)
+            .describe("Climb up normally while the jump key is held")
+            .visibleWhen(this.sameY, var0 -> var0 == Scaffold.SameYMode.ON);
+        this.modeSetting = method_1664();
+        this.modeSetting2 = SafeWalk.method_1515("Safe walk");
+        this.swing = new EnumSetting<>("Swing", SwingMode.DO_NOT_HIDE);
+        this.scaffoldRotationSettings = new ScaffoldRotationSettings();
+        this.sprintControlSettings = SprintControlSettings.sprintControlSettings;
+        this.accelerationSettings = AccelerationSettings.accelerationSettings;
+        this.strafeSettings = StrafeSettings.strafeSettings;
+        this.speedSettings = SpeedSettings.speedSettings;
+        this.clutchSettings = ClutchSettings.clutchSettings;
+        this.edgeSafety = new BooleanSetting("Edge safety", true).describe("Waits at the edge until the aim is on the block, instead of walking off");
+        this.autoF5 = new BooleanSetting("Auto F5", false)
+            .describe("Drops into third person behind you while scaffolding, and puts the camera back after")
+            .onChange(var1 -> {
+                if (this.isToggled()) {
+                    if (!var1) {
+                        this.method_1673();
+                    } else {
+                        this.method_1672();
+                    }
+                }
+            });
+        this.disableOnDeath = new BooleanSetting("Disable on death", true).describe("Turns Scaffold off when you die, so you do not respawn still bridging");
+        this.movementInputState = MovementInputState.INSTANCE8;
+    }
+
+    public MovementInputState getMovementInputState() {
+        return this.movementInputState;
+    }
+
+    private static ModeSetting<Mode> method_1664() {
+        NoneMode var0 = new NoneMode();
+        return new ModeSetting<>("Tower", var0, var0, WatchdogSprintMode.watchdogSprintMode).describe("Vertical bridging while you hold jump standing still");
+    }
+
+    public void method_1665() {
+        if (this.isToggled() && this.disableOnDeath.method_146()) {
+            this.setEnabled(false);
+        }
+    }
+
+    public boolean method_1666(MovingObjectPosition var1) {
+        if (var1 != null && var1.hitVec != null) {
+            Vec3 var8 = var1.hitVec.subtract(mc.thePlayer.getPositionEyes(1.0F));
+            EnumFacing var2;
+            if ((var2 = var1.sideHit) != null && var2.getAxis() != Axis.Y) {
+                double var5;
+                if (var2 != EnumFacing.NORTH && var2 != EnumFacing.SOUTH) {
+                    var5 = var8.xCoord;
+                } else {
+                    var5 = var8.zCoord;
+                }
+
+                if (Math.abs(var5) < this.minDistance.method_151()) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean method_1667() {
+        return mc.thePlayer != null && mc.theWorld != null && mc.playerController != null;
+    }
+
+    private boolean method_1668(BlockPos var1) {
+        return this.sameY.getValue() == Scaffold.SameYMode.HYPIXEL2 && var1.getY() == this.intValue5 + 1;
+    }
+
+    private Rotation method_1669() {
+        Rotation var2;
+        return (var2 = RotationManager.INSTANCE.getServerRotation()) != null ? var2 : MovementPredictor.method_1910(mc.thePlayer);
+    }
+
+    public boolean method_1670() {
+        return this.method_1667() && this.method_1671(ScaffoldMovement.method_1716(mc.thePlayer.inventory.getCurrentItem()));
+    }
+
+    private boolean method_1671(boolean var1) {
+        if (AutoBlockSettings.autoBlockSettings.method_61() && !var1) {
+            Integer var2;
+            if ((var2 = this.method_1655()) != null) {
+                HotbarManager.INSTANCE.method_1974(this, var2, AutoBlockSettings.autoBlockSettings.slotResetDelay.method_149());
+                return true;
+            } else {
+                HotbarManager.INSTANCE.method_1976(this);
+                return var1;
+            }
+        } else {
+            HotbarManager.INSTANCE.method_1976(this);
+            return var1;
+        }
+    }
+
+    @Override
+    public void onEnable() {
+        if (this.autoF5.method_146()) {
+            this.method_1672();
+        }
+
+        if (mc.thePlayer != null) {
+            this.intValue5 = new BlockPos(mc.thePlayer).getY() - 1;
+            this.intValue6 = new BlockPos(mc.thePlayer).getY();
+            this.intValue3 = 2;
+            BlockSlotPicker.method_1703();
+        }
+    }
+
+    private void method_1672() {
+        if (!this.flag) {
+            this.intValue = mc.gameSettings.thirdPersonView;
+            this.flag = (boolean)(mc.gameSettings.thirdPersonView = 1);
+        }
+    }
+
+    @EventHandler
+    private void onPostTick(PostTickEvent var1) {
+        if (!this.method_1667()) {
+            this.intValue2 = 0;
+        } else {
+            if (!mc.thePlayer.onGround && method_1658()) {
+                this.flag3 = true;
+            }
+
+            if (this.intValue2 > 0) {
+                this.intValue2--;
+            } else {
+                this.method_1653();
+            }
+        }
+    }
+
+    @EventHandler(
+        priority = -50
+    )
+    private void onMovementInput(MovementInputEvent var1) {
+        if (this.method_1667()) {
+            if (this.intValue4 > 0) {
+                var1.method_2620(true);
+                this.intValue4--;
+            }
+
+            if (this.edgeSafety.getValue()) {
+                ScaffoldTechnique var9 = this.method_1661();
+                Rotation var3;
+                if ((var3 = RotationManager.INSTANCE.getServerRotation()) == null) {
+                    var3 = MovementPredictor.method_1910(mc.thePlayer);
+                }
+
+                PlacementTarget var6;
+                Rotation var7;
+                if (!(var9 instanceof SneakController var8)) {
+                    PlacementTarget var4 = this.placementTarget;
+                    var8 = null;
+                    var7 = var3;
+                    var6 = var4;
+                } else {
+                    var7 = var3;
+                    var6 = this.placementTarget;
+                }
+
+                PredictedPlacement var10;
+                if ((var10 = ScaffoldPredictor.method_1771(var6, var7, var8)).flag2()) {
+                    var1.method_2622(true);
+                }
+
+                if (var10.flag3()) {
+                    var1.method_2621(MovementInputState.INSTANCE8);
+                }
+
+                if (var10.flag()) {
+                    var1.method_2621(new MovementInputState(false, true, var1.getMovementInputState().flag(), var1.getMovementInputState().flag3()));
+                }
+
+                if (var10.intValue() > this.intValue4) {
+                    var1.method_2620(true);
+                    this.intValue4 = var10.intValue();
+                }
+            }
+        }
+    }
+
+    private void method_1673() {
+        if (this.flag) {
+            this.flag = false;
+            if (mc.gameSettings.thirdPersonView == 1) {
+                mc.gameSettings.thirdPersonView = this.intValue;
+            }
+        }
+    }
+
+    private BlockPos method_1674(BlockPos var1) {
+        switch ((Scaffold.SameYMode)this.sameY.getValue()) {
+            case OFF:
+                return null;
+            case ON:
+                return !this.spaceClimb.getValue() || !method_1658() && !this.flag3 ? method_1656(var1, this.intValue5) : null;
+            case FALLING:
+                if (mc.thePlayer.motionY < 0.2) {
+                    return method_1656(var1, this.intValue5);
+                }
+
+                return null;
+            case HYPIXEL:
+                if (mc.thePlayer.motionY == -0.15233518685055708 && this.intValue3 >= 2) {
+                    this.intValue3 = 0;
+                    return method_1656(var1, this.intValue6);
+                }
+
+                return method_1656(var1, this.intValue6 - 1);
+            case HYPIXEL2:
+                if (!method_1658() && !this.flag3) {
+                    BlockPos var2;
+                    if ((var2 = this.method_1662()) != null) {
+                        return var2;
+                    }
+
+                    return method_1656(var1, this.intValue5);
+                }
+
+                return null;
+            default:
+                throw new MatchException(null, null);
+        }
+    }
+
+    public BlockPos method_1675(BlockPos var1) {
+        if (DownSettings.downSettings.isEnabled() && DownSettings.method_1770()) {
+            return var1.add(0, -2, 0);
+        } else {
+            BlockPos var2;
+            if (this.sameY.getValue() == Scaffold.SameYMode.HYPIXEL2 && (var2 = this.method_1674(var1)) != null) {
+                return var2;
+            } else if (!mc.thePlayer.movementInput.jump || MovementPredictor.method_1896(mc.thePlayer) && !mc.thePlayer.isCollidedHorizontally) {
+                return (var2 = this.method_1674(var1)) != null ? var2 : var1.add(0, -1, 0);
+            } else {
+                return var1.add(0, -1, 0);
+            }
+        }
+    }
+
+    @EventHandler(
+        priority = -10
+    )
+    private void onMovementInput2(MovementInputEvent var1) {
+        if (this.method_1667()) {
+            this.ray = null;
+            this.movementInputState = var1.getMovementInputState();
+            if (!var1.getMovementInputState().equals(MovementInputState.INSTANCE8)) {
+                this.ray = BlockSlotPicker.method_1711(var1.getMovementInputState());
+            }
+        }
+    }
+
+    public Ray getRay() {
+        return this.ray;
+    }
+
+    private static int method_1676(ItemStack var0) {
+        return ScaffoldMovement.method_1716(var0) ? var0.stackSize : 0;
+    }
+
+    private record PlaceInfo(int intValue, ItemStack itemStack) {
+    }
+
+    public static enum SameYMode implements NamedEnum {
+        OFF("Off"),
+        ON("On"),
+        FALLING("Falling"),
+        HYPIXEL("Hypixel"),
+        HYPIXEL2("Hypixel2");
+
+        private final String string;
+
+        @Override
+        public String getDisplayName() {
+            return this.string;
+        }
+
+        private SameYMode(String var3) {
+            this.string = var3;
+        }
+    }
+}

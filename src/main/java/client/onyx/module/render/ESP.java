@@ -1,0 +1,753 @@
+package client.onyx.module.render;
+
+import client.onyx.Onyx;
+import client.onyx.module.Category;
+import client.onyx.module.Module;
+import client.onyx.module.ModuleManager;
+import client.onyx.module.combat.AntiBot;
+import client.onyx.module.player.NameChanger;
+import client.onyx.render.font.FontStyle;
+import client.onyx.render.ui.UiRenderer;
+import client.onyx.render.world.EntityBounds;
+import client.onyx.render.world.WorldProjection;
+import client.onyx.setting.NamedEnum;
+import client.onyx.setting.impl.BooleanSetting;
+import client.onyx.setting.impl.ButtonSetting;
+import client.onyx.setting.impl.ColorSetting;
+import client.onyx.setting.impl.EnumSetSetting;
+import client.onyx.setting.impl.KeybindSetting;
+import client.onyx.setting.impl.NumberSetting;
+import client.onyx.ui.screen.EspLayoutEditorScreen;
+import client.onyx.ui.theme.Typography;
+import client.onyx.util.TextFormatting;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.scoreboard.Team;
+
+public class ESP extends Module {
+    private static final int[] intValueArray = new int[]{
+        0, 170, 43520, 43690, 11141120, 11141290, 16755200, 11184810, 5592405, 5592575, 5635925, 5636095, 16733525, 16733695, 16777045, 16777215
+    };
+    private static final int INT_41 = 4;
+    private static final float FLOAT_3_01 = 3.0F;
+    private static final int INT_N383021 = -38302;
+    private static final float FLOAT_16_01 = 16.0F;
+    private static final int INT_N152531 = -15253;
+    private static final float FLOAT_70_01 = 70.0F;
+    private static final float FLOAT_0_61 = 0.6F;
+    private static final float FLOAT_3_02 = 3.0F;
+    private static final float FLOAT_4_01 = 4.0F;
+    public static final int INT_11 = 1;
+    public static final int INT_12 = 1;
+    private static final int INT_31 = 3;
+    private static final float FLOAT_10_01 = 10.0F;
+    private static final float FLOAT_2_01 = 2.0F;
+    private static final float FLOAT_4_02 = 4.0F;
+    private static final int INT_N65608851 = -6560885;
+    public static final float FLOAT_22_01 = 22.0F;
+    public static final int INT_01 = 0;
+    public static final float FLOAT_2_02 = 2.0F;
+    private static final float FLOAT_1_11 = 1.1F;
+    private static final float FLOAT_12_01 = 12.0F;
+    public static final int INT_21 = 2;
+    private static final float FLOAT_1_01 = 1.0F;
+    private static final float FLOAT_3_03 = 3.0F;
+    public static final int INT_32 = 3;
+    public static final int INT_02 = 0;
+    public ButtonSetting editLayout = new ButtonSetting("Edit layout", () -> mc.displayGuiScreen(new EspLayoutEditorScreen(mc.currentScreen)))
+        .describe("Drag the name and equipment around the player");
+    public BooleanSetting names = new BooleanSetting("Names", true);
+    public EnumSetSetting<ESP.NameDetail> nameDetails = new EnumSetSetting<>("Name details", ESP.NameDetail.class)
+        .describe("Extra readouts carried on the name plate")
+        .visibleWhen(this.names);
+    public BooleanSetting equipment = new BooleanSetting("Equipment", true);
+    public EnumSetSetting<ESP.EquipmentSlot> slots = new EnumSetSetting<>("Slots", ESP.EquipmentSlot.class, ESP.EquipmentSlot.values())
+        .describe("Equipment pieces to show")
+        .visibleWhen(this.equipment);
+    public BooleanSetting enchantPeek = new BooleanSetting("Enchant peek", true)
+        .describe("Hold a key to list the enchantments on every shown item")
+        .visibleWhen(this.equipment);
+    public KeybindSetting peekKey = new KeybindSetting("Peek key", 56).describe("Held to reveal enchantments").visibleWhen(this.enchantPeek);
+    public NumberSetting distance = new NumberSetting("Distance", 256.0, 8.0, 256.0, 8.0)
+        .method_147(" m")
+        .describe("Maximum distance at which player ESP is shown");
+    public NumberSetting scale = new NumberSetting("Scale", 1.0, 0.5, 2.0, 0.05).method_147("x");
+    public ColorSetting textColor = new ColorSetting("Text color", -1);
+    public ColorSetting background = new ColorSetting("Background", -1609033185).method_127();
+    public NumberSetting nameZone = new NumberSetting("Name zone", 0.0, 0.0, 3.0, 1.0).visibleWhen(() -> false);
+    public NumberSetting equipmentZone = new NumberSetting("Equipment zone", 3.0, 0.0, 3.0, 1.0).visibleWhen(() -> false);
+    public BooleanSetting freeLayout = new BooleanSetting("Free layout", false).visibleWhen(() -> false);
+    public BooleanSetting equipmentFirst = new BooleanSetting("Equipment first", false).visibleWhen(() -> false);
+    public NumberSetting nameFreeX = new NumberSetting("Name free X", 0.0, -2.0, 2.0, 1.0E-4).visibleWhen(() -> false);
+    public NumberSetting nameFreeY = new NumberSetting("Name free Y", -0.72, -2.0, 2.0, 1.0E-4).visibleWhen(() -> false);
+    public NumberSetting equipmentFreeX = new NumberSetting("Equipment free X", -0.6, -2.0, 2.0, 1.0E-4).visibleWhen(() -> false);
+    public NumberSetting equipmentFreeY = new NumberSetting("Equipment free Y", 0.0, -2.0, 2.0, 1.0E-4).visibleWhen(() -> false);
+    private final UiRenderer uiRenderer = new UiRenderer().method_460();
+
+    public float[] method_1117(int var1, float var2, boolean var3) {
+        int var5;
+        float var6 = ((var5 = Math.max(var1, 1)) * 22.0F + (var5 - 1) * 2.0F) * var2;
+        var2 = 22.0F * var2;
+        if (!var3) {
+            byte var4 = 2;
+            float[] var10000 = new float[var4];
+            var10000[0] = var2;
+            var10000[1] = var6;
+            return var10000;
+        } else {
+            return new float[]{var6, var2};
+        }
+    }
+
+    public List<ItemStack> method_1118() {
+        ArrayList var4 = new ArrayList(4);
+        int var2 = 0;
+
+        for (int var3 = 0; var3 < 4; var3 = var2) {
+            var2++;
+            var4.add(null);
+        }
+
+        return var4;
+    }
+
+    private static int method_1119(float var0) {
+        float var2;
+        return (var2 = Math.clamp(var0, 0.0F, 1.0F)) < 0.5F ? method_1133(-38302, -15253, var2 * 2.0F) : method_1133(-15253, -6560885, (var2 - 0.5F) * 2.0F);
+    }
+
+    private static String method_1120(String var0) {
+        return TextFormatting.method_2142(var0);
+    }
+
+    public List<ESP.LayoutSlot> method_1121(
+        UiRenderer var1, EntityPlayer var2, float var3, float var4, float var5, float var6, float var7, float var8, boolean var9
+    ) {
+        var var42 = this;
+        float var10 = this.method_1130(var6);
+        float var11 = var3 + var5;
+        float var12 = var4 + var6;
+        var5 = var3 + var5 / 2.0F;
+        float var13 = var4 + var6 / 2.0F;
+        boolean var14 = this.names.method_146();
+        List var15;
+        int var27;
+        if (!(var15 = this.method_1126(var2)).isEmpty()) {
+            var27 = var15.size();
+        } else if (var9) {
+            var27 = 4;
+        } else {
+            var27 = 0;
+        }
+
+        int var16 = var27;
+        boolean var28;
+        if (this.equipment.method_146() && var27 > 0) {
+            var28 = true;
+        } else {
+            var28 = false;
+        }
+
+        var9 = var28;
+        ArrayList var44 = new ArrayList(2);
+        if (this.freeLayout.method_146()) {
+            if (var14) {
+                float[] var45 = this.method_1136(var1, var2, var10);
+                var44.add(
+                    new ESP.LayoutSlot(0, var5 + this.nameFreeX.method_151() * var6, var13 + this.nameFreeY.method_151() * var6, var45[0], var45[1], false)
+                );
+            }
+
+            if (var28) {
+                float[] var46 = this.method_1117(var27, var10, false);
+                var44.add(
+                    new ESP.LayoutSlot(
+                        1, var5 + this.equipmentFreeX.method_151() * var6, var13 + this.equipmentFreeY.method_151() * var6, var46[0], var46[1], false
+                    )
+                );
+            }
+
+            return var44;
+        } else {
+            float var17 = 12.0F * var10;
+            var5 = 10.0F * var10;
+            int var39 = 0;
+
+            for (int var37 = 0; var37 < 4; var37 = ++var39) {
+                boolean var29;
+                if (var39 != 0 && var39 != 3) {
+                    var29 = false;
+                } else {
+                    var29 = true;
+                }
+
+                boolean var18 = var29;
+                boolean var30;
+                if (var14 && var42.nameZone.method_149() == var39) {
+                    var30 = true;
+                } else {
+                    var30 = false;
+                }
+
+                boolean var31;
+                if (var9 && var42.equipmentZone.method_149() == var39) {
+                    var31 = true;
+                } else {
+                    var31 = false;
+                }
+
+                if (var30 || var31) {
+                    ArrayList var21 = new ArrayList(2);
+                    ArrayList var22 = new ArrayList(2);
+                    boolean var32;
+                    if (var30 && var31 && var42.equipmentFirst.method_146()) {
+                        var32 = true;
+                    } else {
+                        var32 = false;
+                    }
+
+                    if (var32) {
+                        var21.add(1);
+                        var22.add(var42.method_1117(var16, var10, var29));
+                    }
+
+                    if (var30) {
+                        var21.add(0);
+                        var22.add(var42.method_1136(var1, var2, var10));
+                    }
+
+                    if (var31 && !var32) {
+                        var21.add(1);
+                        var22.add(var42.method_1117(var16, var10, var29));
+                    }
+
+                    float var19 = var5 * (var22.size() - 1);
+
+                    Iterator var20;
+                    for (Iterator var33 = var20 = var22.iterator(); var33.hasNext(); var33 = var20) {
+                        float[] var23 = (float[])var20.next();
+                        var19 += var23[1];
+                    }
+                    float var48 = switch (var39) {
+                        case 0 -> var4 - var17 - var19;
+                        case 3 -> var12 + var17;
+                        default -> var13 - var19 / 2.0F;
+                    };
+                    int var49 = 0;
+
+                    for (int var36 = 0; var36 < var22.size(); var36 = var49) {
+                        var19 = ((float[])var22.get(var49))[0];
+                        float var24 = ((float[])var22.get(var49))[1];
+                        float var25 = var48 + var24 / 2.0F;
+
+                        var44.add(new ESP.LayoutSlot((Integer)var21.get(var49), switch (var39) {
+                            case 1 -> var3 - var17 - var19 / 2.0F;
+                            case 2 -> var11 + var17 + var19 / 2.0F;
+                            case 3 -> var8;
+                            default -> var7;
+                        }, var25, var19, var24, var18));
+                        var49++;
+                        var48 += var24 + var5;
+                    }
+                }
+            }
+
+            return var44;
+        }
+    }
+
+    private int method_1122(EntityPlayer var1) {
+        NetworkPlayerInfo var3;
+        return (var3 = this.method_1128(var1)) == null ? 0 : Math.max(0, var3.getResponseTime());
+    }
+
+    private float method_1123(UiRenderer var1, List<ESP.Placement> var2) {
+        float var6 = 0.0F;
+        int var4 = 0;
+
+        for (int var5 = 0; var5 < var2.size(); var5 = var4) {
+            if (var4 > 0) {
+                var6 += 4.0F;
+            }
+
+            FontStyle var10002 = ((ESP.Placement)var2.get(var4)).fontStyle();
+            String var10003 = ((ESP.Placement)var2.get(var4)).string();
+            var4++;
+            var6 += var1.method_442(var10002, var10003);
+        }
+
+        return var6;
+    }
+
+    private List<String> method_1124(ItemStack var1) {
+        if (var1 == null) {
+            return List.of();
+        } else {
+            Map var6 = EnchantmentHelper.getEnchantments(var1);
+            ArrayList var2 = new ArrayList(var6.size());
+            Iterator var7;
+            Iterator var5 = var7 = var6.entrySet().iterator();
+
+            while (var5.hasNext()) {
+                Entry var3;
+                Enchantment var4;
+                if ((var4 = Enchantment.getEnchantmentById((Integer)(var3 = (Entry)var7.next()).getKey())) == null) {
+                    var5 = var7;
+                } else {
+                    var2.add(
+                        new StringBuilder()
+                            .insert(0, method_1131(method_1120(var4.getTranslatedName(1)).replaceAll("\\s+[IVXLCDM]+$", "")))
+                            .append(var3.getValue())
+                            .toString()
+                    );
+                    var5 = var7;
+                }
+            }
+
+            return var2;
+        }
+    }
+
+    public boolean method_1125(EntityPlayer var1) {
+        return this.isToggled()
+            && mc.thePlayer != null
+            && mc.theWorld != null
+            && var1.isEntityAlive()
+            && !var1.isSpectator()
+            && !AntiBot.method_1638(var1)
+            && (var1 != mc.thePlayer || mc.gameSettings.thirdPersonView != 0)
+            && mc.thePlayer.getDistanceSqToEntity(var1) <= this.distance.getValue() * this.distance.getValue();
+    }
+
+    public List<ItemStack> method_1126(EntityPlayer var1) {
+        var var2 = this;
+        ArrayList var6 = new ArrayList(ESP.EquipmentSlot.values().length);
+        ESP.EquipmentSlot[] var5;
+        int var4 = (var5 = ESP.EquipmentSlot.values()).length;
+        int var3 = 0;
+
+        for (int var7 = 0; var7 < var4; var7 = ++var3) {
+            ESP.EquipmentSlot var8 = var5[var3];
+            ItemStack var9;
+            if (var2.slots.method_79(var8) && (var9 = var1.getEquipmentInSlot(var8.getIntValue())) != null) {
+                var6.add(var9);
+            }
+        }
+
+        return var6;
+    }
+
+    public void method_1127(UiRenderer var1, EntityPlayer var2, float var3, float var4, float var5) {
+        List var10 = this.method_1140(var2);
+        float var6 = this.method_1123(var1, var10) + 8.0F;
+        float var7 = Typography.fontStyle11.floatValue() + 4.0F;
+        var1.method_441();
+        var1.method_451(var3 - var6 * var5 / 2.0F, var4 - var7 * var5 / 2.0F);
+        var1.method_491(var5, 0.0F, 0.0F);
+        var1.method_479(0.0F, 0.0F, var6, var7, 8.0F, this.background.getValue());
+        float var11 = 4.0F;
+
+        Iterator var13;
+        for (Iterator var8 = var13 = var10.iterator(); var8.hasNext(); var8 = var13) {
+            ESP.Placement var14 = (ESP.Placement)var13.next();
+            var1.method_432(var14.fontStyle(), var14.string(), var11, var7 / 2.0F, var14.intValue());
+            var11 += var1.method_442(var14.fontStyle(), var14.string()) + 4.0F;
+        }
+
+        var1.method_435();
+    }
+
+    private NetworkPlayerInfo method_1128(EntityPlayer var1) {
+        return mc.getNetHandler() == null ? null : mc.getNetHandler().getPlayerInfo(var1.getUniqueID());
+    }
+
+    public void method_1129(UiRenderer var1, EntityPlayer var2, float var3, float var4, float var5, float var6, float var7, float var8, boolean var9) {
+        var var18 = this;
+        float var10 = this.method_1130(var6);
+        List var11;
+        List var13;
+        if ((var11 = this.method_1126(var2)).isEmpty() && var9) {
+            var13 = this.method_1118();
+        } else {
+            var13 = var11;
+        }
+
+        List var12 = var13;
+        Iterator var17 = this.method_1121(var1, var2, var3, var4, var5, var6, var7, var8, var9).iterator();
+
+        while (var17.hasNext()) {
+            ESP.LayoutSlot var16;
+            if ((var16 = (ESP.LayoutSlot)var17.next()).intValue() != 0) {
+                var18.method_1137(var1, var2, var16.floatValue(), var16.floatValue4(), var10, var12, var16.flag());
+            } else {
+                var18.method_1127(var1, var2, var16.floatValue(), var16.floatValue4(), var10);
+            }
+        }
+    }
+
+    public float method_1130(float var1) {
+        return this.scale.method_151() * Math.clamp(var1 / 70.0F, 0.6F, 1.1F);
+    }
+
+    private static String method_1131(String var0) {
+        String[] var7;
+        if ((var7 = var0.split(" ")).length == 1) {
+            return var7[0].substring(0, Math.min(3, var7[0].length()));
+        } else {
+            StringBuilder var2 = new StringBuilder(var7.length);
+            String[] var8;
+            int var4 = (var8 = var7).length;
+            int var3 = 0;
+
+            for (int var6 = 0; var6 < var4; var6 = ++var3) {
+                String var5;
+                if (!(var5 = var8[var3]).isEmpty()) {
+                    var2.append(var5.charAt(0));
+                }
+            }
+
+            return var2.toString();
+        }
+    }
+
+    public static boolean method_1132(EntityLivingBase var0) {
+        ModuleManager var2 = Onyx.moduleManager;
+        ESP var3;
+        return Onyx.moduleManager != null && var0 instanceof EntityPlayer && (var3 = var2.esp).names.method_146() && var3.method_1125((EntityPlayer)var0);
+    }
+
+    private static int method_1133(int var0, int var1, float var2) {
+        int var3 = var0;
+        int var4 = -16777216;
+        byte var8 = 0;
+
+        for (byte var7 = 0; var7 <= 16; var7 = var8) {
+            int var5 = var3 >> var8 & 0xFF;
+            int var6 = var1 >> var8 & 0xFF;
+            int var10001 = Math.round(var5 + (var6 - var5) * var2);
+            byte var10002 = var8;
+            var8 += 8;
+            var4 |= var10001 << var10002;
+        }
+
+        return var4;
+    }
+
+    public boolean method_1134() {
+        return this.equipment.method_146() && this.enchantPeek.method_146() && this.peekKey.method_163() && this.peekKey.method_157();
+    }
+
+    private int method_1135(EntityPlayer var1) {
+        Team var3;
+        int var4;
+        return (var3 = var1.getTeam()) instanceof ScorePlayerTeam
+                && (var4 = ((ScorePlayerTeam)var3).getChatFormat().getColorIndex()) >= 0
+                && var4 < intValueArray.length
+            ? 0xFF000000 | intValueArray[var4]
+            : this.textColor.method_118();
+    }
+
+    public float[] method_1136(UiRenderer var1, EntityPlayer var2, float var3) {
+        float var6 = this.method_1123(var1, this.method_1140(var2)) + 8.0F;
+        float var5 = Typography.fontStyle11.floatValue() + 4.0F;
+        return new float[]{var6 * var3, var5 * var3};
+    }
+
+    public void method_1137(UiRenderer var1, EntityPlayer var2, float var3, float var4, float var5, List<ItemStack> var6, boolean var7) {
+        var var39 = this;
+        int var38;
+        float var8 = (var38 = var6.size()) * 22.0F + (var38 - 1) * 2.0F;
+        float var11;
+        if (var7) {
+            var11 = var8;
+        } else {
+            var11 = 22.0F;
+        }
+
+        float var12;
+        if (var7) {
+            var12 = 22.0F;
+        } else {
+            var12 = var8;
+        }
+
+        var1.method_441();
+        var1.method_451(var3 - var11 * var5 / 2.0F, var4 - var12 * var5 / 2.0F);
+        var1.method_491(var5, 0.0F, 0.0F);
+        int var36 = 0;
+
+        for (int var15 = 0; var15 < var38; var15 = var36) {
+            float var13;
+            if (var7) {
+                var13 = var36 * 24.0F;
+            } else {
+                var13 = 0.0F;
+            }
+
+            float var14;
+            if (var7) {
+                var14 = 0.0F;
+            } else {
+                var14 = var36 * 24.0F;
+            }
+
+            var1.method_479(var13, var14, 22.0F, 22.0F, 8.0F, var39.background.getValue());
+            var1.method_441();
+            var1.method_451(var13 + 3.0F, var14 + 3.0F);
+            ItemStack var10001 = (ItemStack)var6.get(var36);
+            var36++;
+            var1.method_456(var10001, 0.0F, 0.0F);
+            var1.method_435();
+        }
+
+        if (var39.method_1134()) {
+            int var37 = 0;
+
+            for (int var34 = 0; var34 < var38; var34 = ++var37) {
+                ItemStack var10002 = (ItemStack)var6.get(var37);
+                ESP var19;
+                UiRenderer var20;
+                ItemStack var21;
+                float var22;
+                boolean var23;
+                if (!var7) {
+                    ItemStack var18 = var10002;
+                    var23 = var7;
+                    var22 = 0.0F;
+                    var21 = var18;
+                    var20 = var1;
+                    var19 = var39;
+                } else {
+                    float var10003 = var37 * 24.0F;
+                    var23 = var7;
+                    var22 = var10003;
+                    var21 = var10002;
+                    var20 = var1;
+                    var19 = var39;
+                }
+
+                ESP var28;
+                UiRenderer var29;
+                ItemStack var30;
+                float var31;
+                float var32;
+                boolean var33;
+                if (!var23) {
+                    float var10004 = var37 * 24.0F;
+                    var33 = var7;
+                    var32 = var10004;
+                    var31 = var22;
+                    var30 = var21;
+                    var29 = var20;
+                    var28 = var19;
+                } else {
+                    var33 = var7;
+                    var32 = 0.0F;
+                    var31 = var22;
+                    var30 = var21;
+                    var29 = var20;
+                    var28 = var19;
+                }
+
+                var28.method_1138(var29, var30, var31, var32, var33);
+            }
+        }
+
+        var1.method_435();
+    }
+
+    private void method_1138(UiRenderer var1, ItemStack var2, float var3, float var4, boolean var5) {
+        var var8 = this;
+        List var18;
+        if (!(var18 = this.method_1124(var2)).isEmpty()) {
+            float var6 = Typography.fontStyle13.floatValue() + 2.0F;
+            float var7 = 0.0F;
+
+            Iterator var16;
+            for (Iterator var10 = var16 = var18.iterator(); var10.hasNext(); var10 = var16) {
+                String var9 = (String)var16.next();
+                var7 = Math.max(var7, var1.method_442(Typography.fontStyle13, var9));
+            }
+
+            float var17 = var7 + 6.0F;
+            float var22 = var18.size() * var6;
+            float var12;
+            if (!var5) {
+                var12 = var3 + 22.0F + 3.0F;
+            } else {
+                var12 = var3 + (22.0F - var17) / 2.0F;
+            }
+
+            var3 = var12;
+            float var14;
+            if (!var5) {
+                var14 = var4 + (22.0F - var22) / 2.0F;
+            } else {
+                var14 = var4 + 22.0F + 3.0F;
+            }
+
+            var4 = var14;
+            var1.method_479(var12, var14, var17, var22, 4.0F, this.background.getValue());
+            int line = 0; // hand-fixed: the obfuscator reused the boolean slot var5 as the loop counter
+
+            for (int var15 = 0; var15 < var18.size(); var15 = line) {
+                FontStyle var10001 = Typography.fontStyle13;
+                String var10002 = (String)var18.get(line);
+                float var10003 = var3 + var17 / 2.0F;
+                float var10004 = var4 + var6 * (line + 0.5F);
+                line++;
+                var1.method_484(var10001, var10002, var10003, var10004, var8.textColor.method_118());
+            }
+        }
+    }
+
+    public ESP() {
+        super("ESP", "A player's name and equipment, positioned around them", Category.RENDER);
+    }
+
+    private String method_1139(EntityPlayer var1) {
+        String var2;
+        ScorePlayerTeam var3;
+        Team var4;
+        if ((var4 = var1.getTeam()) instanceof ScorePlayerTeam && !(var2 = method_1120((var3 = (ScorePlayerTeam)var4).getColorPrefix()).trim()).isEmpty()) {
+            return var2;
+        } else {
+            NetworkPlayerInfo var9;
+            if ((var9 = this.method_1128(var1)) != null && var9.getDisplayName() != null) {
+                int var6;
+                return (var6 = (var2 = method_1120(var9.getDisplayName().getFormattedText())).indexOf(method_1120(var1.getName()))) <= 0
+                    ? ""
+                    : var2.substring(0, var6).trim();
+            } else {
+                return "";
+            }
+        }
+    }
+
+    private List<ESP.Placement> method_1140(EntityPlayer var1) {
+        ArrayList var2 = new ArrayList(4);
+        int var4 = this.textColor.method_118();
+        String var3;
+        if (this.nameDetails.method_79(ESP.NameDetail.RANK) && !(var3 = this.method_1139(var1)).isEmpty()) {
+            var2.add(new ESP.Placement(Typography.fontStyle13, var3, this.method_1135(var1)));
+        }
+
+        var2.add(new ESP.Placement(Typography.fontStyle11, method_1120(NameChanger.method_1680(var1)), var4));
+        if (this.nameDetails.method_79(ESP.NameDetail.HEALTH)) {
+            float var8 = var1.getHealth() + var1.getAbsorptionAmount();
+            float var5 = Math.max(1.0F, var1.getMaxHealth());
+            var2.add(new ESP.Placement(Typography.fontStyle13, Math.round(var8) + "hp", method_1119(var1.getHealth() / var5)));
+        }
+
+        int var9;
+        if (this.nameDetails.method_79(ESP.NameDetail.PING) && (var9 = this.method_1122(var1)) > 0) {
+            var2.add(new ESP.Placement(Typography.fontStyle13, var9 + "ms", var4));
+        }
+
+        return var2;
+    }
+
+    public void method_1141(float var1) {
+        var var3 = this;
+        if (this.isToggled() && mc.thePlayer != null && mc.theWorld != null) {
+            if (WorldProjection.isFlag()) {
+                ScaledResolution var10000 = new ScaledResolution(mc);
+                float var6 = var10000.getScaledWidth();
+                float var4 = var10000.getScaledHeight();
+                ArrayList var8;
+                (var8 = new ArrayList<>(mc.theWorld.playerEntities))
+                    .sort(Comparator.<EntityPlayer>comparingDouble(var0 -> mc.thePlayer.getDistanceSqToEntity(var0)).reversed());
+                this.uiRenderer.method_468();
+                Iterator var9;
+                Iterator var7 = var9 = var8.iterator();
+
+                while (var7.hasNext()) {
+                    EntityPlayer var5 = (EntityPlayer)var9.next();
+                    if (!var3.method_1125(var5)) {
+                        var7 = var9;
+                    } else {
+                        EntityBounds.Projected var2;
+                        if ((var2 = EntityBounds.method_551(var5, var1, var6, var4)) == null) {
+                            var7 = var9;
+                        } else {
+                            var3.method_1129(
+                                var3.uiRenderer,
+                                var5,
+                                var2.floatValue2(),
+                                var2.floatValue(),
+                                var2.floatValue4(),
+                                var2.floatValue3(),
+                                var2.floatValue6(),
+                                var2.floatValue5(),
+                                false
+                            );
+                            var7 = var9;
+                        }
+                    }
+                }
+
+                var3.uiRenderer.method_483();
+            }
+        }
+    }
+
+    public static enum EquipmentSlot implements NamedEnum {
+        HEAD(4, "Helmet"),
+        CHEST(3, "Chestplate"),
+        LEGS(2, "Leggings"),
+        FEET(1, "Boots"),
+        MAINHAND(0, "Main hand");
+
+        private final int intValue;
+        private final String string;
+
+        private EquipmentSlot(int var3, String var4) {
+            this.intValue = var3;
+            this.string = var4;
+        }
+
+        public int getIntValue() {
+            return this.intValue;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return this.string;
+        }
+    }
+
+    public record LayoutSlot(int intValue, float floatValue, float floatValue4, float floatValue3, float floatValue2, boolean flag) {
+    }
+
+    public static enum NameDetail implements NamedEnum {
+        HEALTH("Health"),
+        RANK("Server rank"),
+        PING("Ping");
+
+        private final String string;
+
+        @Override
+        public String getDisplayName() {
+            return this.string;
+        }
+
+        private NameDetail(String var3) {
+            this.string = var3;
+        }
+    }
+
+    private record Placement(FontStyle fontStyle, String string, int intValue) {
+    }
+}

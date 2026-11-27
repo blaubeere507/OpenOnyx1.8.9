@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// The game install this project was extracted from (holds rt/libs, rt/natives, assets, options.txt).
+def gameDir = file(findProperty('onyx.gameDir') ?: '..')
+
+group = 'client.onyx'
+version = 'deobf'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+repositories { mavenCentral() }
+
+// Tools used by tools/deobf.ps1 (not by the client); "gradlew resolveDeobfTools" puts them in the Gradle cache.
+configurations { deobfTools }
+
+dependencies {
+    deobfTools 'org.ow2.asm:asm:9.9', 'org.ow2.asm:asm-tree:9.9', 'org.ow2.asm:asm-commons:9.9',
+            'org.ow2.asm:asm-analysis:9.9', 'org.ow2.asm:asm-util:9.9', 'org.vineflower:vineflower:1.11.1'
+
+    // Minecraft 1.8.9 (MCP names + OptiFine) with Onyx's hooks, remapped to the deobfuscated client names.
+    implementation files('libs/mc-named.jar')
+    // Every other library the launcher puts on the classpath (LWJGL 2, netty, gson, guava, orbit, ...).
+    implementation fileTree(dir: new File(gameDir, 'rt/libs'), include: '*.jar', exclude: 'mc.jar')
+}
+
+tasks.register('resolveDeobfTools') {
+    def tools = configurations.deobfTools
+    doLast { println "deobf tools: ${tools.resolve().size()} jars in the Gradle cache" }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '10000', '-nowarn']
+}
+
+application {
+    mainClass = 'Start'   // MCP launcher entry point inside mc-named.jar
+}
+
+tasks.named('run', JavaExec) {
+    workingDir = gameDir
+    jvmArgs = ['-Xmx4G', '-Dfile.encoding=UTF-8', '-Donyx.user=dev',
+               "-Djava.library.path=${new File(gameDir, 'rt/natives').absolutePath}"]
+    args = ['--username', 'Player', '--gameDir', gameDir.absolutePath, '--width', '925', '--height', '530']
+}
+
+// Builds a drop-in replacement for onyx.jar (use together with libs/mc-named.jar instead of rt/libs/mc.jar).
+// Every build also refreshes libs/onyx-deobf.jar, the prebuilt copy run.bat starts. (A plain file copy
+// rather than a Copy task: libs/ also holds mc-named.jar, an input of other tasks.) The prebuilt copy is
+// never on the compile classpath; only libs/mc-named.jar is a dependency.
+def runnableJar = file('libs/onyx-deobf.jar')
+tasks.named('jar', Jar) {
+    archiveFileName = 'onyx-deobf.jar'
+    doLast {
+        java.nio.file.Files.copy(archiveFile.get().asFile.toPath(), runnableJar.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+    }
+}

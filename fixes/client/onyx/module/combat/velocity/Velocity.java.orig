@@ -1,0 +1,358 @@
+package client.onyx.module.combat.velocity;
+
+import client.onyx.event.impl.PacketDirection;
+import client.onyx.event.impl.PacketEvent;
+import client.onyx.event.impl.PlayerUpdateEvent;
+import client.onyx.event.impl.TickEvent;
+import client.onyx.event.impl.VelocityEvent;
+import client.onyx.event.impl.WorldLoadEvent;
+import client.onyx.module.Category;
+import client.onyx.module.Module;
+import client.onyx.module.combat.JumpReset;
+import client.onyx.module.combat.KillAura;
+import client.onyx.module.combat.TargetType;
+import client.onyx.setting.Mode;
+import client.onyx.setting.ModeSetting;
+import client.onyx.setting.Setting;
+import client.onyx.setting.impl.BooleanSetting;
+import client.onyx.setting.impl.EnumSetSetting;
+import client.onyx.setting.impl.NumberSetting;
+import client.onyx.setting.impl.RangeSetting;
+import client.onyx.util.player.MovementInputState;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.Packet;
+import net.minecraft.network.ThreadQuickExitException;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C02PacketUseEntity.Action;
+import net.minecraft.network.play.server.S00PacketKeepAlive;
+import net.minecraft.network.play.server.S01PacketJoinGame;
+import net.minecraft.network.play.server.S07PacketRespawn;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
+import net.minecraft.network.play.server.S19PacketEntityStatus;
+import net.minecraft.network.play.server.S27PacketExplosion;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+
+public class Velocity extends Module {
+    private static final double DOUBLE_10_01 = 10.0;
+    private static final double DOUBLE_3_01 = 3.0;
+    public ModeSetting<Mode> modeSetting = method_1575();
+    public BooleanSetting delayKnockback = new BooleanSetting("Delay knockback", true)
+        .describe("Holds the knockback after a melee hit so it lands a moment late")
+        .visibleWhen(Setting.booleanSupplier);
+    public RangeSetting rangeSetting = RangeSetting.method_90("Delay ticks", 3, 3, 1, 20)
+        .method_94("t")
+        .describe("How long the knockback is held before it is applied")
+        .visibleWhen(this.delayKnockback::method_146);
+    public BooleanSetting releaseOnGround = new BooleanSetting("Release on ground", true)
+        .describe("Stops holding the moment you touch the ground")
+        .visibleWhen(Setting.booleanSupplier);
+    public BooleanSetting releaseAfterReduce = new BooleanSetting("Release after reduce", false)
+        .describe("Stops holding once a counter-hit has reduced the knockback")
+        .visibleWhen(Setting.booleanSupplier);
+    public BooleanSetting reduceKnockback = new BooleanSetting("Reduce knockback", true)
+        .describe("Counter-hits the attacker in your crosshair to cut the knockback you take")
+        .visibleWhen(Setting.booleanSupplier);
+    public NumberSetting reduceWindow = new NumberSetting("Reduce window", 5.0, 0.0, 20.0, 1.0)
+        .method_147("t")
+        .describe("How long after knockback the counter-hit may still fire")
+        .visibleWhen(this.reduceKnockback::method_146);
+    public NumberSetting chance = new NumberSetting("Chance", 100.0, 0.0, 100.0, 1.0).method_147("%").describe("Chance to reduce each incoming knockback");
+    public NumberSetting fov = new NumberSetting("FOV", 360.0, 0.0, 360.0, 1.0).method_147("°").visibleWhen(Setting.booleanSupplier);
+    public BooleanSetting pauseWhileBackpedaling = new BooleanSetting("Pause while backpedaling", false).visibleWhen(Setting.booleanSupplier);
+    public BooleanSetting onlyWhileMoving = new BooleanSetting("Only while moving", false).visibleWhen(Setting.booleanSupplier);
+    public EnumSetSetting<TargetType> targets = new EnumSetSetting<>("Targets", TargetType.class, TargetType.PLAYERS, TargetType.TEAMMATES);
+    private final List<Packet> list = new CopyOnWriteArrayList<>();
+    private volatile int intValue;
+    private boolean flag;
+    private boolean flag2;
+    private volatile boolean flag3;
+    private volatile boolean flag4;
+    private int intValue2;
+    private boolean flag5;
+    private volatile boolean flag6;
+    private volatile boolean flag7;
+    private int intValue3;
+
+    @Override
+    public void onEnable() {
+        this.intValue2 = this.method_1581();
+    }
+
+    private EntityPlayer method_1574(double var1) {
+        Vec3 var8 = mc.thePlayer.getPositionEyes(1.0F);
+        Vec3 var4 = mc.thePlayer.getLook(1.0F);
+        var4 = var8.addVector(var4.xCoord * var1, var4.yCoord * var1, var4.zCoord * var1);
+        EntityPlayer var5 = null;
+        var1 = Double.MAX_VALUE;
+        Iterator var6 = mc.theWorld.playerEntities.iterator();
+
+        label37:
+        while (true) {
+            Iterator var11 = var6;
+
+            while (var11.hasNext()) {
+                EntityPlayer var7;
+                if ((var7 = (EntityPlayer)var6.next()) == mc.thePlayer) {
+                    var11 = var6;
+                } else {
+                    if (!var7.isEntityAlive()) {
+                        continue label37;
+                    }
+
+                    if (!var7.isSpectator()) {
+                        float var14 = var7.getCollisionBorderSize();
+                        AxisAlignedBB var10000 = var7.getEntityBoundingBox().expand(var14, var14, var14);
+                        MovingObjectPosition var15 = var10000.calculateIntercept(var8, var4);
+                        double var9;
+                        double var12;
+                        if (var10000.isVecInside(var8)) {
+                            var9 = 0.0;
+                            var12 = 0.0;
+                        } else {
+                            if (var15 == null) {
+                                continue label37;
+                            }
+
+                            var12 = var9 = var8.distanceTo(var15.hitVec);
+                        }
+
+                        if (var12 < var1) {
+                            var5 = var7;
+                            var1 = var9;
+                        }
+                        continue label37;
+                    }
+
+                    var11 = var6;
+                }
+            }
+
+            return var5;
+        }
+    }
+
+    private static ModeSetting<Mode> method_1575() {
+        LagVelocityMode var0 = new LagVelocityMode();
+        return new ModeSetting<>("Mode", var0, var0);
+    }
+
+    private boolean method_1576(Packet<?> var1, PacketEvent var2) {
+        if (var1 instanceof S00PacketKeepAlive) {
+            return false;
+        } else if (!(var1 instanceof S01PacketJoinGame) && !(var1 instanceof S07PacketRespawn)) {
+            if (var1 instanceof S19PacketEntityStatus var3) {
+                boolean var5;
+                if (mc.thePlayer != null && var3.getEntityId() == mc.thePlayer.getEntityId() && var3.getOpCode() == 2) {
+                    var5 = true;
+                } else {
+                    var5 = false;
+                }
+
+                if (!var5) {
+                    return false;
+                }
+            }
+
+            this.list.add(var1);
+            var2.cancel();
+            return true;
+        } else {
+            this.method_1577();
+            return false;
+        }
+    }
+
+    private void method_1577() {
+        this.flag7 = false;
+        if (!this.list.isEmpty()) {
+            ArrayList var6 = new ArrayList<>(this.list);
+            this.list.clear();
+            NetHandlerPlayClient var2;
+            if ((var2 = mc.getNetHandler()) != null) {
+                for (Packet var3 : var6) {
+                    try {
+                        var3.processPacket(var2);
+                    } catch (ThreadQuickExitException var4) {
+                    } catch (Throwable var5) {
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    private void onPacket(PacketEvent var1) {
+        if (var1.getPacketDirection() == PacketDirection.INCOMING) {
+            if (!var1.isCancelled()) {
+                Packet var2 = var1.getPacket();
+                if (!this.flag7 || !this.method_1576(var2, var1)) {
+                    if (var2 instanceof S12PacketEntityVelocity var3) {
+                        if (mc.thePlayer != null && var3.getEntityID() == mc.thePlayer.getEntityId()) {
+                            if (this.delayKnockback.method_146()) {
+                                if (!JumpReset.method_1573() || !mc.thePlayer.onGround) {
+                                    if (this.flag3) {
+                                        if (this.flag4) {
+                                            this.flag4 = false;
+                                        } else {
+                                            this.list.add(var3);
+                                            this.intValue = 0;
+                                            this.flag7 = true;
+                                            var1.cancel();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (var2 instanceof S19PacketEntityStatus) {
+                            S19PacketEntityStatus var5;
+                            if ((var5 = (S19PacketEntityStatus)var2).getOpCode() == 2
+                                && mc.thePlayer != null
+                                && var5.getEntityId() == mc.thePlayer.getEntityId()) {
+                                this.flag3 = true;
+                                return;
+                            }
+                        } else {
+                            S27PacketExplosion var6;
+                            if (var2 instanceof S27PacketExplosion
+                                && ((var6 = (S27PacketExplosion)var2).func_149149_c() != 0.0F || var6.func_149144_d() != 0.0F || var6.func_149147_e() != 0.0F)) {
+                                this.flag4 = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean method_1578() {
+        return !(ThreadLocalRandom.current().nextDouble(100.0) >= this.chance.getValue())
+            && (!this.pauseWhileBackpedaling.method_146() || !mc.gameSettings.keyBindBack.isKeyDown())
+            && this.flag6
+            && (!this.onlyWhileMoving.method_146() || new MovementInputState(mc.thePlayer.movementInput).method_1919());
+    }
+
+    @Override
+    public void onDisable() {
+        this.method_1579();
+        this.flag5 = false;
+        this.flag2 = false;
+        this.intValue3 = 0;
+    }
+
+    private void method_1579() {
+        this.intValue2 = this.method_1581();
+        if (this.flag7) {
+            this.method_1577();
+        }
+
+        this.flag3 = (boolean)(this.intValue = 0);
+        this.flag4 = false;
+        this.flag = false;
+    }
+
+    @EventHandler
+    private void onWorldLoad(WorldLoadEvent var1) {
+        this.method_1580();
+    }
+
+    private void method_1580() {
+        this.list.clear();
+        this.flag7 = false;
+        this.intValue = 0;
+        this.flag3 = false;
+        this.flag4 = false;
+        this.flag5 = false;
+        this.intValue3 = 0;
+        this.flag2 = false;
+        this.flag = false;
+        this.flag6 = false;
+        this.intValue2 = this.method_1581();
+    }
+
+    private int method_1581() {
+        return this.rangeSetting.method_95();
+    }
+
+    public Velocity() {
+        super("Velocity", "Delays and counter-hit reduces the velocity received", Category.COMBAT);
+    }
+
+    @EventHandler
+    private void onVelocity(VelocityEvent var1) {
+        if (this.flag4) {
+            this.flag4 = false;
+        } else {
+            this.flag5 = true;
+            this.flag2 = this.reduceKnockback.method_146();
+            this.intValue3 = 0;
+        }
+    }
+
+    @EventHandler
+    private void onTick(TickEvent var1) {
+        if (mc.thePlayer != null && mc.theWorld != null) {
+            this.flag6 = TargetType.method_1583(10.0, this.fov.method_151(), this.targets.getValue());
+            if (this.flag5 && ++this.intValue3 >= this.reduceWindow.method_149()) {
+                this.flag2 = this.flag5 = false;
+                this.intValue3 = 0;
+            }
+
+            if (this.pauseWhileBackpedaling.method_146() && mc.gameSettings.keyBindBack.isKeyDown()) {
+                this.method_1579();
+            }
+
+            if (!this.flag6) {
+                this.method_1579();
+            }
+
+            if (this.flag7) {
+                this.intValue++;
+                if (this.intValue >= this.intValue2
+                    || this.releaseOnGround.method_146() && mc.thePlayer.onGround
+                    || this.releaseAfterReduce.method_146() && this.flag
+                    || mc.thePlayer.isInWater()
+                    || mc.thePlayer.isInLava()) {
+                    this.method_1579();
+                }
+            }
+        } else {
+            this.method_1580();
+        }
+    }
+
+    @EventHandler
+    private void onPlayerUpdate(PlayerUpdateEvent var1) {
+        if (this.flag2 && this.flag5) {
+            if (mc.thePlayer != null && mc.theWorld != null) {
+                EntityPlayer var2;
+                if ((var2 = this.method_1574(3.0)) != null) {
+                    if (this.method_1578()) {
+                        if (mc.thePlayer.isSprinting()) {
+                            if (!mc.thePlayer.isInWeb) {
+                                if (KillAura.method_1623()) {
+                                    mc.thePlayer.swingItem();
+                                    mc.getNetHandler().addToSendQueue(new C02PacketUseEntity(var2, Action.ATTACK));
+                                    mc.thePlayer.motionX *= 0.6;
+                                    mc.thePlayer.motionZ *= 0.6;
+                                    mc.thePlayer.setSprinting(false);
+                                    this.flag = true;
+                                    this.flag2 = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

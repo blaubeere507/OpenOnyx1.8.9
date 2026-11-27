@@ -1,0 +1,154 @@
+package client.onyx.render.world;
+
+public enum WingType {
+    ANGELIC(
+        new WingPose(0.08F, 0.1F, 0.88F),
+        new WingPose(0.28F, 0.34F, 0.78F),
+        new WingPose(0.56F, 0.82F, 0.62F),
+        new WingPose(0.86F, 0.3F, 0.52F),
+        new WingPose(1.14F, 0.46F, 0.4F),
+        new WingPose(1.24F, 0.04F, 0.3F),
+        new WingPose(1.02F, -0.18F, 0.28F),
+        new WingPose(1.18F, -0.64F, 0.22F),
+        new WingPose(0.86F, -0.46F, 0.2F),
+        new WingPose(0.8F, -0.98F, 0.14F),
+        new WingPose(0.54F, -0.74F, 0.16F),
+        new WingPose(0.3F, -1.16F, 0.12F),
+        new WingPose(0.1F, -0.54F, 0.18F)
+    ),
+    DRAGON(
+        new WingPose(0.1F, 0.12F, 0.9F),
+        new WingPose(0.22F, 0.4F, 0.8F),
+        new WingPose(0.48F, 0.72F, 0.65F),
+        new WingPose(0.8F, 0.6F, 0.55F),
+        new WingPose(1.1F, 0.7F, 0.42F),
+        new WingPose(1.3F, 0.3F, 0.35F),
+        new WingPose(1.2F, -0.1F, 0.3F),
+        new WingPose(1.05F, -0.5F, 0.25F),
+        new WingPose(0.7F, -0.35F, 0.22F),
+        new WingPose(0.5F, -0.7F, 0.18F),
+        new WingPose(0.2F, -0.5F, 0.15F),
+        new WingPose(0.05F, -0.3F, 0.2F)
+    ),
+    BUTTERFLY(
+        new WingPose(0.12F, 0.15F, 0.92F),
+        new WingPose(0.3F, 0.5F, 0.85F),
+        new WingPose(0.5F, 0.9F, 0.7F),
+        new WingPose(0.7F, 0.8F, 0.6F),
+        new WingPose(0.85F, 0.55F, 0.5F),
+        new WingPose(0.75F, 0.2F, 0.45F),
+        new WingPose(0.55F, -0.15F, 0.4F),
+        new WingPose(0.4F, -0.6F, 0.3F),
+        new WingPose(0.25F, -0.85F, 0.2F),
+        new WingPose(0.12F, -0.65F, 0.25F),
+        new WingPose(0.06F, -0.35F, 0.3F)
+    ),
+    PHOENIX(
+        new WingPose(0.1F, 0.14F, 0.9F),
+        new WingPose(0.25F, 0.45F, 0.82F),
+        new WingPose(0.52F, 0.78F, 0.68F),
+        new WingPose(0.82F, 0.5F, 0.55F),
+        new WingPose(1.15F, 0.55F, 0.42F),
+        new WingPose(1.28F, 0.15F, 0.32F),
+        new WingPose(1.2F, -0.25F, 0.28F),
+        new WingPose(1.1F, -0.55F, 0.24F),
+        new WingPose(1.25F, -0.85F, 0.18F),
+        new WingPose(0.9F, -0.65F, 0.16F),
+        new WingPose(0.6F, -0.9F, 0.14F),
+        new WingPose(0.3F, -0.7F, 0.12F),
+        new WingPose(0.08F, -0.4F, 0.16F)
+    ),
+    CRYSTAL(
+        new WingPose(0.15F, 0.1F, 0.85F),
+        new WingPose(0.4F, 0.35F, 0.75F),
+        new WingPose(0.7F, 0.6F, 0.6F),
+        new WingPose(1.0F, 0.4F, 0.5F),
+        new WingPose(0.85F, 0.1F, 0.45F),
+        new WingPose(1.1F, -0.15F, 0.35F),
+        new WingPose(0.9F, -0.45F, 0.3F),
+        new WingPose(0.65F, -0.3F, 0.25F),
+        new WingPose(0.45F, -0.6F, 0.2F),
+        new WingPose(0.2F, -0.4F, 0.22F),
+        new WingPose(0.08F, -0.15F, 0.3F)
+    ),
+    MECHANICAL(
+        new WingPose(0.08F, 0.08F, 0.9F),
+        new WingPose(0.2F, 0.25F, 0.82F),
+        new WingPose(0.45F, 0.4F, 0.7F),
+        new WingPose(0.7F, 0.35F, 0.58F),
+        new WingPose(0.95F, 0.25F, 0.48F),
+        new WingPose(0.9F, 0.0F, 0.4F),
+        new WingPose(1.1F, -0.15F, 0.32F),
+        new WingPose(0.8F, -0.3F, 0.28F),
+        new WingPose(0.55F, -0.2F, 0.25F),
+        new WingPose(0.4F, -0.45F, 0.2F),
+        new WingPose(0.15F, -0.3F, 0.22F),
+        new WingPose(0.05F, -0.1F, 0.28F)
+    ),
+    FAIRY(
+        new WingPose(0.1F, 0.12F, 0.9F),
+        new WingPose(0.25F, 0.38F, 0.82F),
+        new WingPose(0.42F, 0.65F, 0.68F),
+        new WingPose(0.55F, 0.7F, 0.58F),
+        new WingPose(0.6F, 0.45F, 0.5F),
+        new WingPose(0.5F, 0.15F, 0.42F),
+        new WingPose(0.38F, -0.1F, 0.35F),
+        new WingPose(0.3F, -0.35F, 0.28F),
+        new WingPose(0.18F, -0.45F, 0.22F),
+        new WingPose(0.08F, -0.25F, 0.26F)
+    ),
+    DEMON(
+        new WingPose(0.1F, 0.12F, 0.88F),
+        new WingPose(0.25F, 0.38F, 0.8F),
+        new WingPose(0.55F, 0.65F, 0.65F),
+        new WingPose(0.85F, 0.5F, 0.52F),
+        new WingPose(1.15F, 0.55F, 0.4F),
+        new WingPose(1.25F, 0.2F, 0.32F),
+        new WingPose(1.1F, -0.1F, 0.28F),
+        new WingPose(1.3F, -0.45F, 0.22F),
+        new WingPose(1.15F, -0.7F, 0.18F),
+        new WingPose(0.85F, -0.55F, 0.16F),
+        new WingPose(0.55F, -0.85F, 0.14F),
+        new WingPose(0.25F, -0.65F, 0.12F),
+        new WingPose(0.08F, -0.35F, 0.18F)
+    );
+
+    private final WingPose[] wingPoseArray;
+    private final int[] intValueArray;
+    private final float floatValue;
+
+
+    public int[] getIntValueArray() {
+        return this.intValueArray;
+    }
+
+    private WingType(WingPose... var3) {
+        this.wingPoseArray = var3;
+        this.intValueArray = var3.length <= 10 ? WingType.Outline.intValueArray2 : WingType.Outline.intValueArray;
+        float var9 = 0.0F;
+        WingPose[] var10 = var3;
+        int var8 = var3.length;
+        int var4 = 0;
+
+        for (int var6 = 0; var6 < var8; var6 = var4) {
+            WingPose var5 = var10[var4];
+            var4++;
+            var9 = Math.max(var9, var5.floatValue2());
+        }
+
+        this.floatValue = var9;
+    }
+
+    public WingPose[] getWingPoseArray() {
+        return this.wingPoseArray;
+    }
+
+    public float getFloatValue() {
+        return this.floatValue;
+    }
+
+    private static final class Outline {
+        public static final int[] intValueArray = new int[]{2, 4, 7, 9, 11};
+        public static final int[] intValueArray2 = new int[]{2, 4, 6, 8};
+    }
+}

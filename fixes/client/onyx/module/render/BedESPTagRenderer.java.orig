@@ -1,0 +1,150 @@
+package client.onyx.module.render;
+
+import client.onyx.render.ui.PanelRenderer;
+import client.onyx.render.ui.UiRenderer;
+import client.onyx.render.world.WorldProjection;
+import client.onyx.ui.theme.Theme;
+import client.onyx.ui.theme.Typography;
+import client.onyx.util.IMinecraft;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
+
+public final class BedESPTagRenderer implements IMinecraft {
+    private static final int INT_51 = 5;
+    private static final float FLOAT_16_01 = 16.0F;
+    private static final float FLOAT_0_451 = 0.45F;
+    private static final float FLOAT_1_41 = 1.4F;
+    private static final float FLOAT_12_01 = 12.0F;
+    private static final float FLOAT_11_01 = 11.0F;
+    private static final float FLOAT_4_01 = 4.0F;
+    private static final double DOUBLE_1_41 = 1.4;
+    private static final int INT_N9383395611 = -938339561;
+    private static final float FLOAT_10_01 = 10.0F;
+    private static final float FLOAT_1_01 = 1.0F;
+    private static final float FLOAT_4_02 = 4.0F;
+    private static final float FLOAT_30_01 = 30.0F;
+    private final BedESP bedESP;
+
+    private static String method_1148(BedESP.BedInfo var0) {
+        return String.valueOf(var0.intValue());
+    }
+
+    public BedESPTagRenderer(BedESP var1) {
+        this.bedESP = var1;
+    }
+
+    private void method_1149(UiRenderer var1, BedESP.BedInfo var2, float var3, float var4) {
+        var1.method_441();
+        var1.method_451(4.0F, var4 + 0.5F);
+        var1.method_491(0.625F, 0.0F, 0.0F);
+        var1.method_456(var2.itemStack(), 0.0F, 0.0F);
+        var1.method_435();
+        var1.method_476(Typography.fontStyle8, method_1148(var2), var3 - 4.0F, var4 + 5.5F, Theme.getPalette().intValue15());
+    }
+
+    private double method_1150(BlockPos var1) {
+        return mc.thePlayer.getDistanceSq(var1.getX() + 0.5, var1.getY() + 0.5, var1.getZ() + 0.5);
+    }
+
+    public void method_1151(UiRenderer var1, float var2, float var3) {
+        var var8 = this;
+        ArrayList var4;
+        if (!(var4 = new ArrayList<>(this.bedESP.getList3())).isEmpty()) {
+            PanelRenderer.method_601(this.bedESP.tagBlur.method_146());
+            var4.sort(Comparator.comparingDouble(var1x -> -this.method_1150(var1x.blockPos())));
+            Iterator var12;
+            Iterator var9 = var12 = var4.iterator();
+
+            while (var9.hasNext()) {
+                BedESP.BedOutline var5 = (BedESP.BedOutline)var12.next();
+                double var6 = var8.method_1150(var5.blockPos());
+                BlockPos var10 = var5.blockPos();
+                float[] var11;
+                if ((var11 = WorldProjection.method_528(new Vec3(var10.getX() + 0.5, var10.getY() + 1.4, var10.getZ() + 0.5), var2, var3)) == null) {
+                    var9 = var12;
+                } else {
+                    var8.method_1154(var1, var5, var11[0], var11[1], var8.method_1153(var6));
+                    var9 = var12;
+                }
+            }
+        }
+    }
+
+    public boolean method_1152() {
+        return this.bedESP.isToggled() && this.bedESP.defenseTags.method_146() && mc.thePlayer != null && mc.theWorld != null && WorldProjection.isFlag();
+    }
+
+    private float method_1153(double var1) {
+        float var5 = (float)Math.sqrt(var1);
+        float var4 = 12.0F / Math.max(1.0F, var5);
+        float var2;
+        if ((var2 = this.bedESP.tagFalloff.method_151()) != 1.0F) {
+            var4 = (float)Math.pow(var4, var2);
+        }
+
+        return this.bedESP.tagScale.method_151() * Math.min(1.4F, Math.max(0.45F, var4));
+    }
+
+    private void method_1154(UiRenderer var1, BedESP.BedOutline var2, float var3, float var4, float var5) {
+        var var9 = this;
+        List var18 = var2.list();
+        int var6 = Math.min(5, var18.size());
+        boolean var11;
+        if (var18.size() > var6) {
+            var11 = true;
+        } else {
+            var11 = false;
+        }
+
+        int var13;
+        byte var14;
+        if (!var11) {
+            var14 = 0;
+            var13 = var6;
+        } else {
+            var14 = 1;
+            var13 = var6;
+        }
+
+        int var8 = var13 + var14;
+        float var17 = 30.0F;
+        int var10 = 0;
+
+        for (int var15 = 0; var15 < var6; var15 = var10) {
+            float var10002 = var1.method_442(Typography.fontStyle8, method_1148((BedESP.BedInfo)var18.get(var10)));
+            var10++;
+            var17 = Math.max(var17, 22.0F + var10002);
+        }
+
+        float var21 = 8.0F + var8 * 11.0F + Math.max(0, var8 - 1) * 1.0F;
+        var1.method_441();
+        var1.method_451(var3, var4);
+        var1.method_491(var5, 0.0F, 0.0F);
+        var1.method_451(-var17 / 2.0F, -var21);
+        PanelRenderer.method_597(var1, 0.0F, 0.0F, var17, var21, 8.0F, -938339561, this.bedESP.tagBlur.method_146());
+        var3 = 4.0F;
+        int var20 = 0;
+
+        for (int var16 = 0; var16 < var6; var16 = var20) {
+            var9.method_1149(var1, (BedESP.BedInfo)var18.get(var20), var17, var3);
+            var20++;
+            var3 += 12.0F;
+        }
+
+        if (var11) {
+            var1.method_484(
+                Typography.fontStyle8,
+                new StringBuilder().insert(0, "+").append(var18.size() - var6).toString(),
+                var17 / 2.0F,
+                var3 + 5.5F,
+                Theme.method_180(Theme.getPalette().intValue7(), 0.75F)
+            );
+        }
+
+        var1.method_435();
+    }
+}

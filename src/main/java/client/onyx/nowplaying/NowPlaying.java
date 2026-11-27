@@ -1,0 +1,236 @@
+package client.onyx.nowplaying;
+
+import client.onyx.Onyx;
+import client.onyx.render.util.FilterMode;
+import client.onyx.util.IMinecraft;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.imageio.ImageIO;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
+
+public final class NowPlaying implements IMinecraft {
+    private static final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8L)).build();
+    private static final long LONG_8001 = 800L;
+    private final MediaSource mediaSource = method_287();
+    private final AtomicReference<Track> atomicReference = new AtomicReference<>();
+    private final AtomicReference<NowPlaying.CoverArt> atomicReference2 = new AtomicReference<>();
+    private final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    private Thread thread;
+    private int intValue;
+    private boolean flag;
+    private boolean flag2;
+    private String string;
+
+    private static String method_277(MediaSource.Snapshot var0) {
+        if (var0.string2() != null && !var0.string2().isEmpty()) {
+            return var0.string2();
+        } else {
+            return var0.byteValueArray() != null && var0.byteValueArray().length != 0
+                ? new StringBuilder().insert(0, "track:").append(var0.string3()).append(" - ").append(var0.string()).toString()
+                : null;
+        }
+    }
+
+    private BufferedImage method_278(String var1) {
+        try {
+            HttpRequest var10 = HttpRequest.newBuilder(URI.create(var1)).timeout(Duration.ofSeconds(8L)).GET().build();
+            HttpResponse var8;
+            if ((var8 = httpClient.send(var10, BodyHandlers.ofByteArray())).statusCode() != 200) {
+                return null;
+            } else {
+                BufferedImage var3;
+                try (ByteArrayInputStream var9 = new ByteArrayInputStream((byte[])var8.body())) {
+                    var3 = ImageIO.read(var9);
+                }
+
+                return var3;
+            }
+        } catch (InterruptedException | IOException var7) {
+            return null;
+        }
+    }
+
+    private static BufferedImage method_279(BufferedImage var0) {
+        int var2;
+        return (var2 = Math.min(var0.getWidth(), var0.getHeight())) == var0.getWidth() && var2 == var0.getHeight()
+            ? var0
+            : var0.getSubimage((var0.getWidth() - var2) / 2, (var0.getHeight() - var2) / 2, var2, var2);
+    }
+
+    private void method_280() {
+        MediaSource.Snapshot var4;
+        if ((var4 = this.mediaSource.method_270()) != null && var4.string3() != null && !var4.string3().isBlank()) {
+            if (!this.flag) {
+                this.flag = true;
+                Onyx.LOGGER.info("Now-playing: detected \"{}\" by \"{}\"", var4.string3(), var4.string());
+            }
+
+            String var2 = var4.string3();
+            ResourceLocation var3 = this.method_281(method_277(var4), var4.string2(), var4.byteValueArray(), var2);
+            AtomicReference var10000 = this.atomicReference;
+            Track var10001;
+            String var10004;
+            ResourceLocation var10005;
+            if (var4.string() == null) {
+                var10004 = "";
+                var10005 = var3;
+            } else {
+                var10004 = var4.string();
+                var10005 = var3;
+            }
+
+            var10001 = new Track(var2, var10004, var10005, var4.flag(), var4.intValue(), var4.intValue2(), System.nanoTime());
+            var10000.set(var10001);
+        } else {
+            this.atomicReference.set(null);
+        }
+    }
+
+    private ResourceLocation method_281(String var1, String var2, byte[] var3, String var4) {
+        if (var1 != null && !var1.isEmpty()) {
+            NowPlaying.CoverArt var7;
+            if ((var7 = this.atomicReference2.get()) != null && var1.equals(var7.string())) {
+                return var7.resourceLocation();
+            } else if (var1.equals(this.string)) {
+                return null;
+            } else {
+                this.string = var1;
+                BufferedImage var6;
+                if (var2 != null && !var2.isEmpty()) {
+                    var6 = this.method_278(var2);
+                } else {
+                    var6 = this.method_282(var3);
+                }
+
+                if (var6 == null) {
+                    this.string = null;
+                    return null;
+                } else {
+                    if (!this.flag2) {
+                        this.flag2 = true;
+                        Onyx.LOGGER.info("Now-playing: cover art source is {}x{} pixels", var6.getWidth(), var6.getHeight());
+                    }
+
+                    BufferedImage var9 = method_279(var6);
+                    ResourceLocation var10 = new ResourceLocation("onyx", new StringBuilder().insert(0, "nowplaying/art-").append(++this.intValue).toString());
+                    NowPlaying.CoverArt var8 = this.atomicReference2.get();
+                    mc.addScheduledTask(
+                        () -> {
+                            mc.getTextureManager().loadTexture(var10, new DynamicTexture(var9));
+                            this.atomicReference2.set(new NowPlaying.CoverArt(var1, var10));
+                            if (var8 != null) {
+                                ITextureObject var7x;
+                                if ((var7x = mc.getTextureManager().getTexture(var8.resourceLocation())) != null) {
+                                    FilterMode.method_674(var7x.getGlTextureId());
+                                }
+
+                                mc.getTextureManager().deleteTexture(var8.resourceLocation());
+                            }
+
+                            Track var8x;
+                            if ((var8x = this.atomicReference.get()) != null && var8x.resourceLocation() == null && var4.equals(var8x.string2())) {
+                                this.atomicReference
+                                    .set(
+                                        new Track(var8x.string2(), var8x.string(), var10, var8x.flag(), var8x.intValue2(), var8x.intValue(), var8x.longValue())
+                                    );
+                            }
+                        }
+                    );
+                    return null;
+                }
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private BufferedImage method_282(byte[] var1) {
+        java.awt.image.BufferedImage var9; // declared by DeclareMissing
+        try {
+            try (ByteArrayInputStream var8 = new ByteArrayInputStream(var1)) {
+                BufferedImage var3;
+                if ((var3 = ImageIO.read(var8)) == null) {
+                    Onyx.LOGGER.warn("Now-playing: cover art ({} bytes) is in no format ImageIO reads", var1.length);
+                }
+
+                var9 = var3;
+            }
+
+            return var9;
+        } catch (IOException var7) {
+            Onyx.LOGGER.warn("Now-playing: failed to decode cover art", var7);
+            return null;
+        }
+    }
+
+    public Track method_283() {
+        return this.atomicReference.get();
+    }
+
+    public boolean method_284() {
+        return this.mediaSource != null;
+    }
+
+    public synchronized void method_285() {
+        this.atomicBoolean.set(false);
+        if (this.thread != null) {
+            this.thread.interrupt();
+        }
+
+        this.thread = null;
+        this.atomicReference.set(null);
+    }
+
+    public synchronized void method_286() {
+        if (this.mediaSource == null) {
+            Onyx.LOGGER.warn("Now-playing: no media source for OS type {}, feature disabled", Util.getOSType());
+        } else if (!this.atomicBoolean.getAndSet(true)) {
+            Onyx.LOGGER.info("Now-playing: starting {} polling", this.mediaSource.getClass().getSimpleName());
+            this.thread = new Thread(() -> {
+                var var1 = this;
+
+                for (NowPlaying var2 = this; var2.atomicBoolean.get(); var2 = var1) {
+                    try {
+                        var1.method_280();
+                    } catch (RuntimeException var4) {
+                        Onyx.LOGGER.warn("Now-playing poll failed", var4);
+                    }
+
+                    try {
+                        Thread.sleep(800L);
+                    } catch (InterruptedException var3) {
+                        return;
+                    }
+                }
+            }, "onyx-nowplaying");
+            this.thread.setDaemon(true);
+            this.thread.start();
+        }
+    }
+
+    private static MediaSource method_287() {
+        switch (Util.getOSType()) {
+            case WINDOWS:
+                return new WindowsMediaSource();
+            case OSX:
+                return new MacMediaSource();
+            default:
+                return null;
+        }
+    }
+
+    private record CoverArt(String string, ResourceLocation resourceLocation) {
+    }
+}

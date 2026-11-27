@@ -1,0 +1,178 @@
+package client.onyx.setting.impl;
+
+import client.onyx.setting.ValueSetting;
+import client.onyx.ui.theme.Theme;
+import client.onyx.ui.theme.color.ColorUtils;
+import client.onyx.ui.theme.color.Hct;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.IntSupplier;
+import java.util.function.Predicate;
+
+public class ColorSetting extends ValueSetting<Integer> {
+    private boolean flag2 = true;
+    private IntSupplier intSupplier = () -> Theme.getPalette().intValue31();
+    private boolean flag;
+    private boolean flag3;
+    private boolean flag4;
+
+    public ColorSetting method_116() {
+        this.flag3 = true;
+        this.method_124(true);
+        return this;
+    }
+
+    public ColorSetting describe(String var1) {
+        super.describe(var1);
+        return this;
+    }
+
+    public boolean isFlag2() {
+        return this.flag2;
+    }
+
+    public ColorSetting method_117() {
+        this.flag2 = false;
+        this.flag4 = false;
+        return this;
+    }
+
+    public ColorSetting visibleWhen(BooleanSupplier var1) {
+        super.visibleWhen(var1);
+        return this;
+    }
+
+    @Override
+    public JsonElement save() {
+        if (!this.flag2) {
+            return new JsonPrimitive(this.method_128());
+        } else {
+            JsonObject var2 = new JsonObject();
+            var2.addProperty("value", this.method_128());
+            var2.addProperty("accent", this.flag4);
+            return var2;
+        }
+    }
+
+    public int method_118() {
+        return this.getValue() | 0xFF000000;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        this.method_124(this.flag3);
+    }
+
+    public ColorSetting(String var1, int var2) {
+        super(var1, var2);
+    }
+
+    public int method_119() {
+        return (Integer)super.getValue() | 0xFF000000;
+    }
+
+    public ColorSetting onChange(Consumer<Integer> var1) {
+        super.onChange(var1);
+        return this;
+    }
+
+    public int method_120() {
+        return ColorUtils.method_213(this.getValue());
+    }
+
+    public Integer getValue() {
+        if (!this.flag4) {
+            return (Integer)super.getValue();
+        } else {
+            int var4 = this.intSupplier.getAsInt();
+            int var3;
+            if (!this.flag) {
+                var3 = var4 | 0xFF000000;
+            } else {
+                var3 = ColorUtils.method_199(var4, ColorUtils.method_213((Integer)super.getValue()));
+            }
+
+            return var3;
+        }
+    }
+
+    public String method_121() {
+        return this.flag ? String.format("#%08X", this.getValue()) : String.format("#%06X", this.getValue() & 16777215);
+    }
+
+    public ColorSetting method_122(IntSupplier var1) {
+        this.intSupplier = var1;
+        return this;
+    }
+
+    public float[] method_123() {
+        return ColorUtils.method_215(this.getValue());
+    }
+
+    public void method_124(boolean var1) {
+        if (this.flag2) {
+            this.flag4 = var1;
+        }
+    }
+
+    @Override
+    public void load(JsonElement var1) {
+        if (var1.isJsonPrimitive() && var1.getAsJsonPrimitive().isNumber()) {
+            this.setValue(var1.getAsInt());
+            this.method_124(false);
+        } else if (var1.isJsonObject()) {
+            JsonObject var6 = var1.getAsJsonObject();
+            JsonElement var4 = var6.get("value");
+            JsonElement var2 = var6.get("accent");
+            if (var4 != null && var4.isJsonPrimitive() && var4.getAsJsonPrimitive().isNumber()) {
+                this.setValue(var4.getAsInt());
+            }
+
+            if (var2 != null && var2.isJsonPrimitive() && var2.getAsJsonPrimitive().isBoolean()) {
+                this.method_124(var2.getAsBoolean());
+            }
+        }
+    }
+
+    public ColorSetting method_125(double var1) {
+        return this.method_122(() -> {
+            Hct var10000 = Hct.method_188(var0.getAsInt());
+            return var10000.method_189(ColorUtils.method_205(var10000.getDoubleValue() + var1)).getIntValue();
+        });
+    }
+
+    public boolean isFlag() {
+        return this.flag;
+    }
+
+    public void method_126(float var1, float var2, float var3, int var4) {
+        this.setValue(ColorUtils.method_202(var1, var2, var3, var4));
+    }
+
+    public <O> ColorSetting visibleWhen(ValueSetting<O> var1, Predicate<O> var2) {
+        super.visibleWhen(var1, var2);
+        return this;
+    }
+
+    public ColorSetting method_127() {
+        this.flag = true;
+        return this;
+    }
+
+    public int method_128() {
+        return (Integer)super.getValue();
+    }
+
+    public ColorSetting visibleWhen(ValueSetting<Boolean> var1) {
+        super.visibleWhen(var1);
+        return this;
+    }
+
+    public boolean isFlag4() {
+        return this.flag4;
+    }
+}

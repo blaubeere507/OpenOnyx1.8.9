@@ -1,0 +1,624 @@
+# Onyx class rename map (hand-curated)
+#
+# Format:   <obfuscated internal name>   <new name>
+#   - a new name starting with "client/" is a full internal name for a top-level class
+#   - a new name starting with "$" is a simple name for a nested class; the outer class
+#     is taken from the InnerClasses attribute, so the result is <mapped outer>$<simple>
+#   - a trailing "?" marks a name inferred with low confidence (review these first)
+#
+# Classes not listed here are named automatically by tools/Mapper.java:
+#   - modules (subclasses of Module) from the name string passed to the Module constructor,
+#     placed in client/onyx/module/<category>/
+#   - nested setting groups from their group label (+ "Settings")
+#   - everything else gets a placeholder (Class_<n>) and is reported
+
+client/onyx/c                               client/onyx/Onyx
+client/onyx/K                               client/onyx/util/IMinecraft
+client/onyx/lqzxvptmnk                      client/onyx/obf/ObfuscatorStub
+
+# ---------------------------------------------------------------- input (a)
+client/onyx/a/c                             client/onyx/input/KeyboardState
+client/onyx/a/J                             client/onyx/input/KeyTyped
+client/onyx/a/K                             client/onyx/input/MouseScroll ?
+client/onyx/a/e                             client/onyx/input/MouseClick ?
+
+# ---------------------------------------------------------------- placement / swing (c)
+client/onyx/c/K                             client/onyx/util/player/SwingMode
+client/onyx/c/c                             client/onyx/util/player/BlockPlacer
+client/onyx/c/t/A                           client/onyx/placement/PlacementPlan ?
+client/onyx/c/t/F                           client/onyx/placement/PlacementPlanner ?
+client/onyx/c/t/h                           client/onyx/placement/AimPoint
+client/onyx/c/t/H                           client/onyx/placement/CenterAimPoint ?
+client/onyx/c/t/L                           client/onyx/placement/RandomAimPoint ?
+client/onyx/c/t/G                           client/onyx/placement/EdgeAimPoint ?
+client/onyx/c/t/j                           client/onyx/placement/NearestRotationAimPoint ?
+client/onyx/c/t/f                           client/onyx/placement/StabilizedAimPoint ?
+client/onyx/c/t/g                           client/onyx/placement/AimPointMode
+client/onyx/c/t/I                           client/onyx/placement/AimPointSelection ?
+client/onyx/c/t/M                           client/onyx/placement/EyePosition
+client/onyx/c/t/e                           client/onyx/placement/PlacementSearch
+client/onyx/c/t/c                           $PlaceType
+client/onyx/c/t/J                           $Candidate
+client/onyx/c/t/K                           $FaceHit
+client/onyx/c/t/k                           client/onyx/placement/SearchPattern
+client/onyx/c/t/i                           $Offsets
+client/onyx/c/t/l                           client/onyx/placement/ScoredPoint
+client/onyx/c/t/m                           client/onyx/placement/PlacementTarget
+
+# ---------------------------------------------------------------- settings (d)
+client/onyx/d/J                             client/onyx/setting/Setting
+client/onyx/d/h                             client/onyx/setting/ValueSetting
+client/onyx/d/e                             client/onyx/setting/SettingGroup
+client/onyx/d/H                             client/onyx/setting/SettingSection
+client/onyx/d/i                             client/onyx/setting/TabbedSettingGroup
+client/onyx/d/l                             client/onyx/setting/Mode
+client/onyx/d/M                             client/onyx/setting/NoneMode
+client/onyx/d/f                             client/onyx/setting/ModeSetting
+client/onyx/d/c                             client/onyx/setting/NamedEnum
+client/onyx/d/G                             client/onyx/setting/RangeSampler
+client/onyx/d/L                             client/onyx/setting/Range
+client/onyx/d/j                             client/onyx/setting/SettingHistory
+client/onyx/d/I                             $Entry
+client/onyx/d/K                             $Action
+client/onyx/d/t/f                           client/onyx/setting/impl/BooleanSetting
+client/onyx/d/t/h                           client/onyx/setting/impl/NumberSetting
+client/onyx/d/t/J                           client/onyx/setting/impl/RangeSetting
+client/onyx/d/t/l                           client/onyx/setting/impl/EnumSetting
+client/onyx/d/t/G                           client/onyx/setting/impl/EnumSetSetting
+client/onyx/d/t/e                           client/onyx/setting/impl/EnumListSetting
+client/onyx/d/t/M                           client/onyx/setting/impl/ColorSetting
+client/onyx/d/t/j                           client/onyx/setting/impl/KeybindSetting
+client/onyx/d/t/K                           client/onyx/setting/impl/TextSetting
+client/onyx/d/t/H                           client/onyx/setting/impl/ButtonSetting
+client/onyx/d/t/I                           client/onyx/setting/impl/BlockListSetting
+client/onyx/d/t/L                           client/onyx/setting/impl/ItemListSetting
+client/onyx/d/t/c                           client/onyx/setting/impl/SlotLayoutSetting
+
+# ---------------------------------------------------------------- theme / colour science (e)
+client/onyx/e/e                             client/onyx/ui/theme/Theme
+client/onyx/e/G                             client/onyx/ui/theme/Palette
+client/onyx/e/J                             client/onyx/ui/theme/Durations
+client/onyx/e/K                             client/onyx/ui/theme/Typography
+client/onyx/e/c                             client/onyx/ui/theme/Spacing
+client/onyx/e/h                             client/onyx/ui/theme/ColorRoles ?
+client/onyx/e/t/e                           client/onyx/ui/theme/color/ColorUtils
+client/onyx/e/t/J                           client/onyx/ui/theme/color/Hct
+client/onyx/e/t/h                           client/onyx/ui/theme/color/Cam16
+client/onyx/e/t/K                           client/onyx/ui/theme/color/ViewingConditions
+client/onyx/e/t/c                           client/onyx/ui/theme/color/TonalPalette
+
+# ---------------------------------------------------------------- proxy (g)
+client/onyx/g/G                             client/onyx/proxy/HttpProxyHandler
+client/onyx/g/c                             client/onyx/proxy/Socks5ProxyHandler
+client/onyx/g/K                             $State
+client/onyx/g/h                             client/onyx/proxy/LocalProxyBridge
+client/onyx/g/J                             $Upstream
+client/onyx/g/e                             $ConnectTarget
+
+# ---------------------------------------------------------------- skins (i)
+client/onyx/i/J                             client/onyx/skin/MojangSkinLookup
+client/onyx/i/c                             $SkinResult
+client/onyx/i/K                             client/onyx/skin/SkinOverride
+
+# ---------------------------------------------------------------- now playing (j)
+client/onyx/j/h                             client/onyx/nowplaying/NowPlaying
+client/onyx/j/J                             $CoverArt
+client/onyx/j/K                             client/onyx/nowplaying/MediaSource
+client/onyx/j/L                             $Snapshot
+client/onyx/j/c                             client/onyx/nowplaying/WindowsMediaSource
+client/onyx/j/l                             client/onyx/nowplaying/MacMediaSource
+client/onyx/j/G                             client/onyx/nowplaying/Track
+
+# ---------------------------------------------------------------- player simulation (k)
+client/onyx/k/G                             client/onyx/simulation/PlayerSimulation
+client/onyx/k/L                             client/onyx/simulation/SimulatedPlayer
+client/onyx/k/J                             client/onyx/simulation/SimulatedPlayerInput
+client/onyx/k/K                             client/onyx/simulation/TrajectorySource ?
+client/onyx/k/M                             client/onyx/simulation/StaticTrajectory ?
+client/onyx/k/f                             client/onyx/simulation/CachedTrajectory ?
+client/onyx/k/c                             client/onyx/simulation/SimulatedTick
+client/onyx/k/l                             client/onyx/simulation/SimulationManager
+
+# ---------------------------------------------------------------- commands (l)
+client/onyx/l/K                             client/onyx/command/Command
+client/onyx/l/c                             client/onyx/command/CommandManager
+client/onyx/l/t/K                           client/onyx/command/impl/ConfigCommand
+
+# ---------------------------------------------------------------- rendering (m)
+client/onyx/m/A                             client/onyx/render/effect/HandMaskRenderer
+client/onyx/m/B                             client/onyx/render/effect/FogBlurRenderer
+client/onyx/m/C                             client/onyx/render/util/FrameTimeSmoother ?
+client/onyx/m/c                             client/onyx/render/world/TrailLineRenderer ?
+client/onyx/m/E                             client/onyx/render/effect/FrostedGlass
+client/onyx/m/F                             client/onyx/render/effect/HandTransformRenderer ?
+client/onyx/m/m                             $State
+client/onyx/m/G                             client/onyx/render/ui/UiRenderer
+client/onyx/m/H                             client/onyx/render/effect/HandTrailRenderer
+client/onyx/m/I                             client/onyx/render/effect/SkyboxRenderer
+client/onyx/m/J                             client/onyx/render/world/BoxRenderer
+client/onyx/m/K                             client/onyx/render/world/WorldProjection
+client/onyx/m/L                             client/onyx/render/util/RenderTarget
+client/onyx/m/M                             client/onyx/render/effect/PostProcessing
+client/onyx/m/l                             $Target
+client/onyx/m/N                             client/onyx/render/effect/ChamsRenderer
+client/onyx/m/P                             client/onyx/render/world/EntityBounds ?
+client/onyx/m/D                             $Bounds ?
+client/onyx/m/a                             $Projected ?
+client/onyx/m/U                             $CursorType
+client/onyx/m/n                             client/onyx/render/ui/Cursors
+client/onyx/m/b                             client/onyx/render/effect/GlowRenderer
+client/onyx/m/d                             client/onyx/render/ui/PanelRenderer ?
+client/onyx/m/e                             client/onyx/render/world/LineRenderer ?
+client/onyx/m/f                             client/onyx/render/ui/Corners
+client/onyx/m/g                             client/onyx/render/effect/OutlineRenderer
+client/onyx/m/h                             client/onyx/render/util/FilterMode
+client/onyx/m/i                             client/onyx/render/effect/HandShaderRenderer ?
+client/onyx/m/j                             client/onyx/render/effect/MotionBlurRenderer
+client/onyx/m/k                             client/onyx/render/effect/HandGlowRenderer
+client/onyx/m/r                             client/onyx/render/effect/AmbienceRenderer
+client/onyx/m/t                             client/onyx/render/world/CameraState ?
+client/onyx/m/p/K                           client/onyx/render/shader/ShaderProgram
+client/onyx/m/a/e                           client/onyx/render/world/BlockGlintRenderer
+client/onyx/m/a/c                           client/onyx/render/world/BlockOverlayRenderer ?
+client/onyx/m/a/K                           client/onyx/render/world/BlockOverlayState ?
+client/onyx/m/d/J                           client/onyx/render/anim/Animation
+client/onyx/m/d/K                           client/onyx/render/anim/Easing
+client/onyx/m/d/c                           client/onyx/render/anim/Easings
+client/onyx/m/d/e                           client/onyx/render/anim/Spring ?
+client/onyx/m/e/G                           client/onyx/render/font/FontFiles
+client/onyx/m/e/e                           $Weight
+client/onyx/m/e/h                           $Size
+client/onyx/m/e/J                           client/onyx/render/font/GlyphAtlasFont
+client/onyx/m/e/c                           $Glyph
+client/onyx/m/e/K                           client/onyx/render/font/FontStyle
+client/onyx/m/g/e                           client/onyx/render/texture/ImageFit ?
+client/onyx/m/g/J                           $FitMode
+client/onyx/m/g/K                           client/onyx/render/texture/LogoTexture
+client/onyx/m/g/c                           client/onyx/render/texture/CapeTexture
+client/onyx/m/i/e                           client/onyx/render/world/ChinaHatRenderer
+client/onyx/m/i/c                           $Ring ?
+client/onyx/m/i/G                           client/onyx/render/world/ColorStyle
+client/onyx/m/i/K                           client/onyx/render/world/ChinaHatParams ?
+client/onyx/m/i/h                           client/onyx/render/world/ChinaHatFrame ?
+client/onyx/m/j/J                           client/onyx/render/world/ParticleSystem ?
+client/onyx/m/j/c                           $SpawnReason
+client/onyx/m/j/K                           client/onyx/render/world/Particle ?
+client/onyx/m/k/G                           client/onyx/render/world/TargetMarkRenderer
+client/onyx/m/k/h                           $Shard ?
+client/onyx/m/k/L                           client/onyx/render/world/TargetRingRenderer ?
+client/onyx/m/k/J                           client/onyx/render/world/TargetMarkState ?
+client/onyx/m/k/K                           client/onyx/render/world/TargetMarkAnimator ?
+client/onyx/m/k/c                           client/onyx/render/world/TargetMarkParams ?
+client/onyx/m/k/e                           client/onyx/render/world/TargetMarkFrame ?
+client/onyx/m/k/l                           client/onyx/render/world/TargetMarkMath ?
+client/onyx/m/m/J                           client/onyx/render/world/TrailRenderer
+client/onyx/m/m/K                           client/onyx/render/world/TrailPoint ?
+client/onyx/m/m/e                           client/onyx/render/world/TrailParams ?
+client/onyx/m/r/c                           client/onyx/render/effect/ColorGrading ?
+client/onyx/m/r/K                           $Params ?
+client/onyx/m/t/J                           client/onyx/render/world/WingsRenderer
+client/onyx/m/t/K                           $WingShape ?
+client/onyx/m/t/G                           client/onyx/render/world/WingType
+client/onyx/m/t/h                           $Outline ?
+client/onyx/m/t/L                           client/onyx/render/world/WingParams ?
+client/onyx/m/t/c                           client/onyx/render/world/WingFeather ?
+client/onyx/m/t/e                           client/onyx/render/world/WingFrame ?
+client/onyx/m/t/l                           client/onyx/render/world/WingPose ?
+client/onyx/m/v/K                           client/onyx/render/ui/StatusBarsRenderer ?
+client/onyx/m/v/e                           client/onyx/render/ui/HealthBarAnimator ?
+client/onyx/m/v/J                           $Bar ?
+client/onyx/m/v/c                           $Ghost ?
+client/onyx/m/v/G                           client/onyx/render/ui/HotbarRenderer ?
+client/onyx/m/v/h                           client/onyx/render/ui/StatusIcons ?
+client/onyx/m/w/A                           client/onyx/render/gui/GuiOpenAnimation
+client/onyx/m/w/F                           client/onyx/render/gui/SmoothCaret
+client/onyx/m/w/H                           client/onyx/render/gui/IconFont
+client/onyx/m/w/j                           $GlyphSource
+client/onyx/m/w/K                           client/onyx/render/gui/HudElement
+client/onyx/m/w/I                           client/onyx/render/gui/BossBarElement
+client/onyx/m/w/L                           client/onyx/render/gui/ScoreboardElement
+client/onyx/m/w/G                           $Row
+client/onyx/m/w/c                           client/onyx/render/gui/TitleElement
+client/onyx/m/w/f                           client/onyx/render/gui/CustomFontRenderer
+client/onyx/m/w/h                           client/onyx/render/gui/TextLayout ?
+client/onyx/m/w/J                           $Line ?
+client/onyx/m/w/e                           $Run ?
+client/onyx/m/w/i                           client/onyx/render/gui/CustomGuiState
+client/onyx/m/w/k                           client/onyx/render/gui/HotbarAnimator
+client/onyx/m/w/l                           client/onyx/render/gui/ChatAnimator ?
+client/onyx/m/w/m                           client/onyx/render/gui/ChatOpenAnimation
+client/onyx/m/z/J                           client/onyx/render/world/JumpCircleRenderer
+client/onyx/m/z/K                           client/onyx/render/world/JumpGlassRenderer
+client/onyx/m/z/c                           client/onyx/render/world/JumpCircle ?
+client/onyx/m/z/e                           client/onyx/render/world/JumpCircleParams ?
+
+# ---------------------------------------------------------------- rotations / aim (p)
+client/onyx/p/J                             client/onyx/rotation/RotationManager
+client/onyx/p/K                             client/onyx/rotation/RotationSettings
+client/onyx/p/c                             client/onyx/rotation/RotationRequest
+client/onyx/p/d/K                           client/onyx/rotation/RotationMath
+client/onyx/p/m/K                           client/onyx/rotation/AngleDelta ?
+client/onyx/p/m/c                           client/onyx/rotation/Rotation
+client/onyx/p/t/K                           client/onyx/rotation/MovementCorrection
+client/onyx/p/t/t/K                         client/onyx/rotation/aim/AimModel
+client/onyx/p/t/t/t/K                       client/onyx/rotation/aim/AimModelMode
+client/onyx/p/t/t/t/c                       client/onyx/rotation/aim/TurnSpeedAimModel
+client/onyx/p/t/t/t/J                       client/onyx/rotation/aim/AimInput ?
+client/onyx/p/t/t/t/t/K                     client/onyx/rotation/aim/impl/SigmoidAimModel
+client/onyx/p/t/t/t/t/c                     client/onyx/rotation/aim/impl/LinearAimModel
+client/onyx/p/t/t/t/t/l                     client/onyx/rotation/aim/impl/AccelerationAimModel
+client/onyx/p/t/t/t/t/G                     $ConstantErrorSettings
+client/onyx/p/t/t/t/t/J                     $SigmoidDecelerationSettings
+client/onyx/p/t/t/t/t/L                     $AccelerationErrorSettings
+client/onyx/p/t/t/t/t/h                     $DynamicAccelerationSettings
+client/onyx/p/t/t/t/t/e                     $AxisState
+
+# ---------------------------------------------------------------- modules (r)
+client/onyx/r/K                             client/onyx/module/Module
+client/onyx/r/J                             client/onyx/module/Category
+client/onyx/r/e                             client/onyx/module/BindMode
+client/onyx/r/c                             client/onyx/module/ModuleManager
+# modules that own a helper package live inside it
+client/onyx/r/t/t/J                         client/onyx/module/player/scaffold/Scaffold
+client/onyx/r/t/r/c                         client/onyx/module/combat/velocity/Velocity
+client/onyx/r/t/m/K                         client/onyx/module/movement/safewalk/SafeWalk
+client/onyx/r/t/k/j                         client/onyx/module/hud/targethud/TargetHUD
+client/onyx/r/t/k/s                         client/onyx/module/hud/arraylist/ModuleList
+client/onyx/r/t/k/B                         client/onyx/module/hud/notification/Notifications
+client/onyx/r/t/k/L                         client/onyx/module/hud/island/Watermark
+client/onyx/r/t/d/Pa                        client/onyx/module/render/BedESPTagRenderer
+client/onyx/r/t/k/A                         client/onyx/module/hud/island/IslandStats ?
+client/onyx/r/t/k/H                         $Sample ?
+client/onyx/r/t/k/i                         $PingTracker ?
+client/onyx/r/t/k/m                         client/onyx/module/hud/HudLayout ?
+client/onyx/r/t/k/m/J                       client/onyx/module/hud/arraylist/ArrayListRenderer ?
+client/onyx/r/t/k/m/K                       client/onyx/module/hud/arraylist/RowStyle
+client/onyx/r/t/k/m/c                       client/onyx/module/hud/arraylist/SortOrder
+client/onyx/r/t/k/m/e                       client/onyx/module/hud/arraylist/RowAnimation
+client/onyx/r/t/k/m/h                       client/onyx/module/hud/arraylist/ColorMode
+client/onyx/r/t/k/d/K                       client/onyx/module/hud/notification/Notification
+client/onyx/r/t/k/d/c                       client/onyx/module/hud/notification/NotificationType
+client/onyx/r/t/k/t/c                       client/onyx/module/hud/targethud/TargetHudFormatter
+client/onyx/r/t/k/t/K                       $Token ?
+client/onyx/r/t/k/t/J                       client/onyx/module/hud/targethud/TargetHudElementSettings
+client/onyx/r/t/k/t/G                       client/onyx/module/hud/targethud/HealthReadout
+client/onyx/r/t/k/t/h                       client/onyx/module/hud/targethud/TargetHudElement
+client/onyx/r/t/k/t/e                       $Kind
+client/onyx/r/t/r/J                         client/onyx/module/combat/bedwars/BedWarsObjectives ?
+client/onyx/r/t/r/K                         client/onyx/module/combat/CombatHelper ?
+client/onyx/r/t/r/f                         client/onyx/module/combat/TargetType
+client/onyx/r/t/r/t/K                       client/onyx/module/combat/velocity/LagVelocityMode
+client/onyx/r/t/m/t/J                       client/onyx/module/movement/safewalk/SneakSafeWalkMode
+client/onyx/r/t/m/t/c                       $EdgeAction
+client/onyx/r/t/m/t/K                       client/onyx/module/movement/safewalk/SafeSafeWalkMode
+client/onyx/r/t/t/t/J                       client/onyx/module/player/scaffold/ScaffoldRotationSettings
+client/onyx/r/t/t/t/c                       $ScaffoldAimModel
+client/onyx/r/t/t/t/G                       client/onyx/module/player/scaffold/BlockSlotPicker ?
+client/onyx/r/t/t/t/e                       $SlotChoice ?
+client/onyx/r/t/t/t/h                       $BlockCandidate
+client/onyx/r/t/t/t/K                       client/onyx/module/player/scaffold/ScaffoldPlacement ?
+client/onyx/r/t/t/t/L                       client/onyx/module/player/scaffold/ScaffoldMovement ?
+client/onyx/r/t/t/t/d/K                     client/onyx/module/player/scaffold/sprint/WatchdogSprintMode
+client/onyx/r/t/t/t/m/c                     client/onyx/module/player/scaffold/technique/ScaffoldTechnique
+client/onyx/r/t/t/t/m/G                     client/onyx/module/player/scaffold/technique/HypixelKeepYTechnique
+client/onyx/r/t/t/t/m/h                     $RotationStyle
+client/onyx/r/t/t/t/m/I                     client/onyx/module/player/scaffold/technique/BreezilyTechnique
+client/onyx/r/t/t/t/m/J                     client/onyx/module/player/scaffold/technique/NormalTechnique
+client/onyx/r/t/t/t/m/M                     client/onyx/module/player/scaffold/technique/ExpandTechnique
+client/onyx/r/t/t/t/m/e                     client/onyx/module/player/scaffold/technique/HypixelSprintTechnique
+client/onyx/r/t/t/t/m/l                     client/onyx/module/player/scaffold/technique/GodBridgeTechnique
+client/onyx/r/t/t/t/m/L                     $SneakAction
+client/onyx/r/t/t/t/m/t/J                   client/onyx/module/player/scaffold/technique/StabilizeSettings
+client/onyx/r/t/t/t/m/t/c                   client/onyx/module/player/scaffold/technique/TellySettings
+client/onyx/r/t/t/t/m/t/K                   $JumpAim
+client/onyx/r/t/t/t/m/t/e                   client/onyx/module/player/scaffold/technique/SneakSettings
+client/onyx/r/t/t/t/m/t/h                   client/onyx/module/player/scaffold/technique/DownSettings
+client/onyx/r/t/t/t/t/G                     client/onyx/module/player/scaffold/feature/ScaffoldPredictor ?
+client/onyx/r/t/t/t/t/K                     client/onyx/module/player/scaffold/feature/SneakController ?
+client/onyx/r/t/t/t/t/j                     client/onyx/module/player/scaffold/feature/PredictedPlacement ?
+client/onyx/r/t/t/t/t/I                     client/onyx/module/player/scaffold/feature/AccelerationSettings
+client/onyx/r/t/t/t/t/L                     client/onyx/module/player/scaffold/feature/SpeedSettings
+client/onyx/r/t/t/t/t/M                     client/onyx/module/player/scaffold/feature/ClutchSettings
+client/onyx/r/t/t/t/t/l                     $ClutchAimModel
+client/onyx/r/t/t/t/t/c                     client/onyx/module/player/scaffold/feature/StrafeSettings
+client/onyx/r/t/t/t/t/e                     client/onyx/module/player/scaffold/feature/SprintControlSettings
+client/onyx/r/t/t/t/t/J                     $SprintMode
+client/onyx/r/t/t/t/t/f                     client/onyx/module/player/scaffold/feature/AutoBlockSettings
+client/onyx/r/t/t/t/t/h                     client/onyx/module/player/scaffold/feature/PredictionSettings
+
+# nested enums/records of modules (outer = module, auto-named)
+client/onyx/r/t/d/Ca                        $TargetSettings
+client/onyx/r/t/d/ia                        $TargetSettings
+client/onyx/r/t/d/z                         $TargetSettings
+client/onyx/r/t/d/Ea                        $ColorSource
+client/onyx/r/t/d/F                         $SkyPreset
+client/onyx/r/t/d/m                         $Quality
+client/onyx/r/t/d/G                         $PredictedPath
+client/onyx/r/t/d/L                         $ProjectileKind
+client/onyx/r/t/d/H                         $StartHeight
+client/onyx/r/t/d/I                         $Style
+client/onyx/r/t/d/J                         $FillMode
+client/onyx/r/t/d/c                         $TargetMode
+client/onyx/r/t/d/M                         $TrailMode
+client/onyx/r/t/d/Ma                        $NameDetail
+client/onyx/r/t/d/ka                        $EquipmentSlot
+client/onyx/r/t/d/ja                        $LayoutSlot ?
+client/onyx/r/t/d/Ha                        $Placement ?
+client/onyx/r/t/d/Na                        $BreakMode
+client/onyx/r/t/d/O                         $HandState ?
+client/onyx/r/t/d/S                         $EffectSettings
+client/onyx/r/t/d/W                         $TrailSettings
+client/onyx/r/t/d/X                         $TransformSettings
+client/onyx/r/t/d/q                         $GlintSettings
+client/onyx/r/t/d/w                         $SwingSettings
+client/onyx/r/t/d/s                         $SwingCurve
+client/onyx/r/t/d/x                         $EffectType
+client/onyx/r/t/d/Q                         $GlowMode
+client/onyx/r/t/d/Y                         $ColorSettings
+client/onyx/r/t/d/y                         $1
+client/onyx/r/t/d/Qa                        $BlockAnimation
+client/onyx/r/t/d/ta                        $SwingAnimation
+client/onyx/r/t/d/T                         $Perspective
+client/onyx/r/t/d/Ta                        $BedInfo ?
+client/onyx/r/t/d/Ua                        $DefenseBlock ?
+client/onyx/r/t/d/wa                        $BedOutline ?
+client/onyx/r/t/d/Za                        $Theme
+client/onyx/r/t/d/ra                        $AppearMode
+client/onyx/r/t/d/xa                        $BreakDirection
+client/onyx/r/t/d/ya                        $BreakProgressSettings
+client/onyx/r/t/d/Oa                        $GlintSettings
+client/onyx/r/t/d/Sa                        $AnimationSettings
+client/onyx/r/t/d/a                         $SpawnMode
+client/onyx/r/t/d/aa                        $Shape
+client/onyx/r/t/d/ba                        $BoxStyle
+client/onyx/r/t/d/ea                        $BoxData ?
+client/onyx/r/t/d/fa                        $ColorSettings
+client/onyx/r/t/d/la                        $1
+client/onyx/r/t/d/b                         $SkinSource
+client/onyx/r/t/d/d                         $ModelType
+client/onyx/r/t/d/ga                        $CapeSource
+client/onyx/r/t/d/n                         $CircleMode
+client/onyx/r/t/d/oa                        $ArrowDesign
+client/onyx/r/t/d/Da                        $ChamsSettings
+client/onyx/r/t/d/Fa                        $1
+client/onyx/r/t/d/Ia                        $MotionBlurSettings
+client/onyx/r/t/d/Ka                        $FirstPersonSettings
+client/onyx/r/t/d/N                         $DistortionSettings
+client/onyx/r/t/d/Ra                        $ColorGradingSettings
+client/onyx/r/t/d/na                        $LightSettings
+client/onyx/r/t/d/h                         $ProjectileSettings
+client/onyx/r/t/d/i                         $RingSettings
+client/onyx/r/t/d/j                         $StrikeSettings
+client/onyx/r/t/k/C                         $Row ?
+client/onyx/r/t/k/E                         $Popup ?
+client/onyx/r/t/k/F                         $SortKey
+client/onyx/r/t/k/G                         $IslandState ?
+client/onyx/r/t/k/J                         $Toggle ?
+client/onyx/r/t/k/K                         $Stat
+client/onyx/r/t/k/c                         $Gauge ?
+client/onyx/r/t/k/h                         $Music ?
+client/onyx/r/t/k/e                         $IslandMode
+client/onyx/r/t/k/I                         $1
+client/onyx/r/t/k/M                         $ElementLayout ?
+client/onyx/r/t/k/f                         $TargetState ?
+client/onyx/r/t/k/l                         $AnchorSpace
+client/onyx/r/t/k/b                         $PotionRow ?
+client/onyx/r/t/k/g                         $PotionAnimation ?
+client/onyx/r/t/k/k                         $1
+client/onyx/r/t/k/x                         $1
+client/onyx/r/t/k/N                         $StatusBarSettings
+client/onyx/r/t/k/P                         $FontWeight
+client/onyx/r/t/k/U                         $TitleSettings
+client/onyx/r/t/k/V                         $ShadowSettings
+client/onyx/r/t/k/W                         $HotbarSettings
+client/onyx/r/t/k/X                         $FontSettings
+client/onyx/r/t/k/n                         $StatusBarMode
+client/onyx/r/t/k/q                         $BossbarSettings
+client/onyx/r/t/k/r                         $OpenAnimationSettings
+client/onyx/r/t/k/t                         $ScoreboardSettings
+client/onyx/r/t/k/w                         $ChatSettings
+client/onyx/r/t/r/G                         $AttackMode
+client/onyx/r/t/r/L                         $AutoBlockMode
+client/onyx/r/t/r/e                         $TargetFilter
+client/onyx/r/t/r/h                         $HitCheck
+client/onyx/r/t/r/H                         $BreakOrder
+client/onyx/r/t/r/I                         $PatternBlock ?
+client/onyx/r/t/r/i                         $DefensePattern
+client/onyx/r/t/r/j                         $PlacementStep ?
+client/onyx/r/t/t/K                         $SameYMode
+client/onyx/r/t/t/c                         $PlaceInfo ?
+client/onyx/r/t/t/L                         $DepositState
+client/onyx/r/t/t/M                         $DepositSource
+client/onyx/r/t/t/l                         $DepositItems
+
+# ---------------------------------------------------------------- accounts (s)
+client/onyx/s/j                             client/onyx/account/AccountManager
+client/onyx/s/I                             $LoginException
+client/onyx/s/L                             client/onyx/account/Account
+client/onyx/s/H                             $1
+client/onyx/s/M                             client/onyx/account/MicrosoftAccount
+client/onyx/s/i                             client/onyx/account/AccessTokenAccount
+client/onyx/s/l                             client/onyx/account/OfflineAccount
+client/onyx/s/f                             client/onyx/account/AccountType
+client/onyx/s/c                             client/onyx/account/AccountHeads ?
+client/onyx/s/K                             $1
+client/onyx/s/G                             client/onyx/account/ProxyConfig
+client/onyx/s/J                             $Protocol
+client/onyx/s/e                             $Endpoint ?
+client/onyx/s/h                             $Credentials ?
+client/onyx/s/t/K                           client/onyx/account/microsoft/MicrosoftAuth
+client/onyx/s/t/L                           client/onyx/account/microsoft/Http
+client/onyx/s/t/G                           $Response
+client/onyx/s/t/h                           client/onyx/account/microsoft/XboxLiveAuth
+client/onyx/s/t/J                           $XboxToken ?
+client/onyx/s/t/c                           $MinecraftToken ?
+client/onyx/s/t/e                           $ClientFlavour
+client/onyx/s/t/l                           client/onyx/account/microsoft/AuthException
+
+# ---------------------------------------------------------------- utilities (t)
+client/onyx/t/A                             $ItemGroup
+client/onyx/t/B                             client/onyx/util/Priorities
+client/onyx/t/C                             client/onyx/util/player/MovementPredictor ?
+client/onyx/t/D                             client/onyx/util/player/MovementInputState
+client/onyx/t/E                             client/onyx/util/player/InputKeys
+client/onyx/t/d                             client/onyx/util/player/InputKeysUtil
+client/onyx/t/F                             $1
+client/onyx/t/G                             $Task
+client/onyx/t/H                             $Entry
+client/onyx/t/I                             client/onyx/util/world/CollisionUtil
+client/onyx/t/J                             $SlotRequest
+client/onyx/t/K                             client/onyx/util/Toggleable
+client/onyx/t/L                             client/onyx/util/TaskScheduler
+client/onyx/t/M                             client/onyx/util/Importance
+client/onyx/t/N                             client/onyx/util/DesktopUtil
+client/onyx/t/P                             client/onyx/util/ChainedComparator
+client/onyx/t/U                             client/onyx/util/world/HitboxMode
+client/onyx/t/V                             $1
+client/onyx/t/W                             client/onyx/util/Workers
+client/onyx/t/a                             client/onyx/util/world/EntityRaycast
+client/onyx/t/b                             client/onyx/util/player/ContainerTracker
+client/onyx/t/c                             client/onyx/util/math/VecUtil
+client/onyx/t/e                             client/onyx/util/player/HotbarManager
+client/onyx/t/f                             client/onyx/util/network/PacketUtil
+client/onyx/t/g                             client/onyx/util/world/BlockSelection
+client/onyx/t/h                             client/onyx/util/ConditionalAction ?
+client/onyx/t/i                             client/onyx/util/item/ItemCatalog
+client/onyx/t/j                             client/onyx/util/item/BlockItemUtil
+client/onyx/t/k                             $Kind
+client/onyx/t/l                             client/onyx/util/world/BlockRaycast
+client/onyx/t/m                             client/onyx/util/item/ItemMatcher
+client/onyx/t/n                             client/onyx/util/Timer
+client/onyx/t/r                             client/onyx/util/math/AabbUtil
+client/onyx/t/t                             $1
+client/onyx/t/t/K                           client/onyx/util/geometry/Shape
+client/onyx/t/t/M                           client/onyx/util/geometry/Ray ?
+client/onyx/t/t/c                           client/onyx/util/geometry/Line ?
+client/onyx/t/t/l                           client/onyx/util/geometry/LineSegment
+client/onyx/t/t/G                           client/onyx/util/geometry/ClosestPoint ?
+client/onyx/t/t/J                           client/onyx/util/geometry/Polynomial ?
+client/onyx/t/t/L                           client/onyx/util/geometry/PointPair ?
+client/onyx/t/t/e                           client/onyx/util/geometry/LineBounds
+client/onyx/t/t/f                           client/onyx/util/geometry/AlignedFace
+client/onyx/t/t/h                           client/onyx/util/geometry/Plane
+
+# ---------------------------------------------------------------- discord (u)
+client/onyx/u/K                             client/onyx/discord/DiscordIpc
+
+# ---------------------------------------------------------------- misc helpers (v)
+client/onyx/v/A                             client/onyx/util/FrameWatchdog
+client/onyx/v/B                             client/onyx/util/ChatNameFilter
+client/onyx/v/E                             client/onyx/util/bench/Benchmark
+client/onyx/v/b                             $Result
+client/onyx/v/d                             $PhaseStats ?
+client/onyx/v/g                             $Stage
+client/onyx/v/F                             client/onyx/util/ChatUtil ?
+client/onyx/v/G                             client/onyx/rotation/Aimer
+client/onyx/v/h                             $1
+client/onyx/v/H                             client/onyx/rotation/RotationVisuals
+client/onyx/v/I                             client/onyx/rotation/HitVecUtil ?
+client/onyx/v/i                             client/onyx/util/player/InventoryUtil
+client/onyx/v/J                             client/onyx/util/TargetGroup
+client/onyx/v/K                             client/onyx/util/TextFormatting
+client/onyx/v/L                             $RotationMode
+client/onyx/v/l                             client/onyx/rotation/AimSettings
+client/onyx/v/M                             client/onyx/rotation/MoveFix
+client/onyx/v/j                             client/onyx/rotation/MoveFixMode
+client/onyx/v/f                             client/onyx/rotation/YawPitch
+client/onyx/v/c                             client/onyx/util/player/TeamUtil
+client/onyx/v/e                             client/onyx/rotation/RotationUtil
+client/onyx/v/k                             client/onyx/util/HypixelUtil
+client/onyx/v/m                             client/onyx/util/FileDialog
+
+# ---------------------------------------------------------------- GUI (w)
+client/onyx/w/K                             client/onyx/ui/component/Component
+client/onyx/w/c                             client/onyx/ui/component/ScrollList
+client/onyx/w/G                             client/onyx/ui/component/ComponentHost ?
+client/onyx/w/J                             client/onyx/ui/component/RenderContext
+client/onyx/w/M                             client/onyx/ui/component/KeyShortcuts
+client/onyx/w/e                             client/onyx/ui/component/CaretBlink ?
+client/onyx/w/H                             client/onyx/ui/component/Icons
+client/onyx/w/j                             $1
+client/onyx/w/A                             client/onyx/ui/clickgui/ClickGuiPanel
+client/onyx/w/F                             client/onyx/ui/screen/AccountManagerScreen ?
+client/onyx/w/L                             client/onyx/ui/screen/ProxyScreen ?
+client/onyx/w/I                             client/onyx/ui/screen/InventoryRulesScreen
+client/onyx/w/f                             $Rule ?
+client/onyx/w/h                             client/onyx/ui/screen/TargetHudEditorScreen
+client/onyx/w/i                             client/onyx/ui/screen/EspLayoutEditorScreen
+client/onyx/w/k                             client/onyx/ui/screen/ClickGuiScreen ?
+client/onyx/w/m                             client/onyx/ui/screen/CapeEditorScreen
+client/onyx/w/b                             client/onyx/ui/account/AccountListView
+client/onyx/w/g                             client/onyx/ui/account/AccountPanel
+client/onyx/w/l                             client/onyx/ui/account/ProxyButton ?
+client/onyx/w/t/A                           client/onyx/ui/clickgui/ModuleSearchBar
+client/onyx/w/t/B                           client/onyx/ui/clickgui/ModuleListView
+client/onyx/w/t/C                           client/onyx/ui/component/Checkbox ?
+client/onyx/w/t/D                           $Cell ?
+client/onyx/w/t/E                           client/onyx/ui/clickgui/setting/SettingSectionView ?
+client/onyx/w/t/F                           client/onyx/ui/account/ProxySettingsPanel
+client/onyx/w/t/G                           $EditKind
+client/onyx/w/t/H                           $Item ?
+client/onyx/w/t/I                           client/onyx/ui/component/Label ?
+client/onyx/w/t/J                           client/onyx/ui/component/TextField
+client/onyx/w/t/K                           $ChangeListener
+client/onyx/w/t/L                           client/onyx/ui/component/TextBuffer
+client/onyx/w/t/h                           $Edit
+client/onyx/w/t/M                           client/onyx/ui/clickgui/setting/TabbedGroupView
+client/onyx/w/t/N                           client/onyx/ui/component/Button
+client/onyx/w/t/n                           $Variant
+client/onyx/w/t/O                           client/onyx/ui/clickgui/setting/KeybindView
+client/onyx/w/t/P                           client/onyx/ui/component/Grid ?
+client/onyx/w/t/S                           client/onyx/ui/clickgui/setting/ColorView
+client/onyx/w/t/q                           $DragTarget
+client/onyx/w/t/U                           client/onyx/ui/component/MenuButton
+client/onyx/w/t/V                           client/onyx/ui/clickgui/setting/NumberView ?
+client/onyx/w/t/W                           client/onyx/ui/clickgui/config/ConfigListPanel
+client/onyx/w/t/X                           client/onyx/ui/clickgui/config/ConfigListView
+client/onyx/w/t/Y                           client/onyx/ui/account/AccountRow
+client/onyx/w/t/a                           client/onyx/ui/clickgui/setting/BooleanView ?
+client/onyx/w/t/b                           client/onyx/ui/clickgui/setting/EnumView ?
+client/onyx/w/t/c                           client/onyx/ui/component/IconButton ?
+client/onyx/w/t/d                           client/onyx/ui/clickgui/config/ConfigsTab
+client/onyx/w/t/e                           client/onyx/ui/component/SearchField ?
+client/onyx/w/t/f                           client/onyx/ui/clickgui/setting/RangeView ?
+client/onyx/w/t/g                           client/onyx/ui/clickgui/setting/TextView ?
+client/onyx/w/t/i                           client/onyx/ui/component/Popup ?
+client/onyx/w/t/j                           client/onyx/ui/clickgui/setting/SettingListView
+client/onyx/w/t/k                           client/onyx/ui/clickgui/ModuleRow ?
+client/onyx/w/t/l                           client/onyx/ui/clickgui/setting/SettingView
+client/onyx/w/t/m                           client/onyx/ui/clickgui/setting/EnumSetView ?
+client/onyx/w/t/r                           client/onyx/ui/clickgui/setting/ModeView ?
+client/onyx/w/t/s                           client/onyx/ui/clickgui/setting/BlockListView
+client/onyx/w/t/t                           client/onyx/ui/component/Tooltip ?
+client/onyx/w/t/v                           client/onyx/ui/account/AddAccountPanel
+client/onyx/w/t/w                           client/onyx/ui/clickgui/config/ConfigRow
+client/onyx/w/t/x                           client/onyx/ui/clickgui/setting/ButtonView ?
+client/onyx/w/t/z                           client/onyx/ui/clickgui/setting/ItemListView ?
+
+# ---------------------------------------------------------------- events (y)
+client/onyx/y/K                             client/onyx/event/Event
+client/onyx/y/t/e                           client/onyx/event/impl/TickEvent
+client/onyx/y/t/F                           client/onyx/event/impl/PostTickEvent
+client/onyx/y/t/m                           client/onyx/event/impl/KeyEvent
+client/onyx/y/t/K                           client/onyx/event/impl/WorldLoadEvent
+client/onyx/y/t/c                           client/onyx/event/impl/PlayerUpdateEvent
+client/onyx/y/t/l                           client/onyx/event/impl/PostPlayerUpdateEvent
+client/onyx/y/t/h                           client/onyx/event/impl/SprintEvent
+client/onyx/y/t/b                           client/onyx/event/impl/AttackEvent
+client/onyx/y/t/A                           client/onyx/event/impl/VelocityEvent
+client/onyx/y/t/f                           client/onyx/event/impl/MoveEvent
+client/onyx/y/t/M                           client/onyx/event/impl/StrafeEvent
+client/onyx/y/t/j                           client/onyx/event/impl/JumpEvent
+client/onyx/y/t/H                           client/onyx/event/impl/PostJumpEvent
+client/onyx/y/t/i                           client/onyx/event/impl/PacketEvent
+client/onyx/y/t/J                           client/onyx/event/impl/PacketDirection
+client/onyx/y/t/k                           client/onyx/event/impl/MovementInputEvent
+client/onyx/y/t/g                           client/onyx/event/impl/EventStage
+client/onyx/y/t/G                           client/onyx/event/impl/GenericEvent ?
+client/onyx/y/t/I                           client/onyx/event/impl/PositionEvent ?
+client/onyx/y/t/L                           client/onyx/event/impl/Render2DEvent ?
+
+# ---------------------------------------------------------------- configs (z)
+client/onyx/z/J                             client/onyx/config/ConfigManager
+client/onyx/z/c                             $LoadResult ?
+client/onyx/z/K                             client/onyx/config/ConfigListener ?

@@ -1,0 +1,296 @@
+package client.onyx.render.world;
+
+import client.onyx.Onyx;
+import client.onyx.render.shader.ShaderProgram;
+import client.onyx.util.IMinecraft;
+import java.util.Iterator;
+import java.util.List;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.Vec3;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
+
+public final class WingsRenderer implements AutoCloseable, IMinecraft {
+    private static final float FLOAT_0_841 = 0.84F;
+    private static final float FLOAT_1_221 = 1.22F;
+    private static final float FLOAT_1_01 = 1.0F;
+    public static final int INT_2201 = 220;
+    private static final float FLOAT_0_961 = 0.96F;
+    private static final long LONG_1800000000001 = 180000000000L;
+    private boolean flag2 = true;
+    private ShaderProgram shaderProgram;
+    private boolean flag;
+
+    private void method_835(List<WingFrame> var1, WingFeather var2, Vec3 var3, int var4, int var5) {
+        int var6 = method_838(var4, var5);
+        var4 = method_838(var4, (int)(var5 * 0.45F));
+        boolean var9;
+        if (var2.flag2() && this.method_847()) {
+            var9 = true;
+        } else {
+            var9 = false;
+        }
+
+        Tessellator var7;
+        WorldRenderer var8 = (var7 = Tessellator.getInstance()).getWorldRenderer();
+        var8.begin(4, DefaultVertexFormats.POSITION_COLOR);
+        final int edgeColor = var4;
+        method_845(var1, var2, var3, (var3x, var4x, var5x) -> method_843(var8, var4x, var5x, 1.0F, var3x.wingType().getWingPoseArray(), var6, edgeColor));
+        var7.draw();
+        if (var9) {
+            ShaderProgram.method_819();
+        }
+    }
+
+    private static int method_836(int var0, int var1, float var2) {
+        int var3 = method_849(var0, 24) + (int)((method_849(var1, 24) - method_849(var0, 24)) * var2);
+        int var4 = method_849(var0, 16) + (int)((method_849(var1, 16) - method_849(var0, 16)) * var2);
+        int var5 = method_849(var0, 8) + (int)((method_849(var1, 8) - method_849(var0, 8)) * var2);
+        var0 = method_849(var0, 0) + (int)((method_849(var1, 0) - method_849(var0, 0)) * var2);
+        return var3 << 24 | var4 << 16 | var5 << 8 | var0;
+    }
+
+    private void method_837(List<WingFrame> var1, WingFeather var2, Vec3 var3, int var4, int var5, int var6) {
+        int var7 = method_838(var4, (int)(var6 * 0.22F));
+        var4 = method_838(var4, 0);
+        int var10 = method_838(var5, (int)(var6 * 0.26F));
+        var5 = method_838(var5, 0);
+        Tessellator var8;
+        WorldRenderer var9 = (var8 = Tessellator.getInstance()).getWorldRenderer();
+        var9.begin(4, DefaultVertexFormats.POSITION_COLOR);
+        final int outerEdge = var4, innerEdge = var5;
+        method_845(var1, var2, var3, (var5x, var6x, var7x) -> {
+            WingPose[] var9x = var5x.wingType().getWingPoseArray();
+            method_843(var9, var6x, var7x, 1.22F, var9x, var7, outerEdge);
+            method_843(var9, var6x, var7x, 0.84F, var9x, var10, innerEdge);
+        });
+        var8.draw();
+    }
+
+    @Override
+    public void close() {
+        this.flag2 = true;
+        this.flag = false;
+        this.shaderProgram = null;
+    }
+
+    private static int method_838(int var0, int var1) {
+        return Math.clamp((long)var1, 0, 255) << 24 | var0 & 16777215;
+    }
+
+    private static int method_839(int var0, float var1) {
+        return method_838(var0, Math.clamp((long)((int)(method_850(var0) * var1)), 0, 255));
+    }
+
+    private void method_840(List<WingFrame> var1, WingFeather var2, Vec3 var3, int var4, int var5, int var6) {
+        var4 = method_838(var4, (int)Math.min(255.0F, var6 * 0.95F));
+        var5 = method_838(var5, (int)(var6 * 0.2F));
+        int var9 = method_838(var5, Math.max(Math.round(8.0F * var2.floatValue2()), (int)(method_850(var5) * 0.75F)));
+        Tessellator var7;
+        WorldRenderer var8 = (var7 = Tessellator.getInstance()).getWorldRenderer();
+        GL11.glLineWidth(2.2F);
+        var8.begin(1, DefaultVertexFormats.POSITION_COLOR);
+        final int lineColor = var4, boneColor = var5;
+        method_845(var1, var2, var3, (var4x, var5x, var6x) -> {
+            int var13 = lineColor;
+            WorldRenderer var16 = var8;
+            WingType var17;
+            WingPose[] var7x = (var17 = var4x.wingType()).getWingPoseArray();
+            int var8x = 0;
+
+            for (int var11x = 0; var11x < var7x.length; var11x = var8x) {
+                WingPose var9x = var7x[var8x];
+                WingPose var10x = var7x[(var8x + 1) % var7x.length];
+                method_848(var16, var5x, var6x * var9x.floatValue2() * 1.0F, var9x.floatValue3() * 1.0F, var13);
+                float var10002 = var6x * var10x.floatValue2() * 1.0F;
+                float var10003 = var10x.floatValue3();
+                var8x++;
+                method_848(var16, var5x, var10002, var10003 * 1.0F, var13);
+            }
+
+            int[] var18;
+            int var19 = (var18 = var17.getIntValueArray()).length;
+            int var20 = 0;
+
+            for (int var12 = 0; var12 < var19; var12 = ++var20) {
+                int var14;
+                if ((var14 = var18[var20]) < var7x.length) {
+                    WingPose var15 = var7x[var14];
+                    method_848(var16, var5x, 0.0F, 0.0F, var9);
+                    method_848(var16, var5x, var6x * var15.floatValue2() * 0.96F, var15.floatValue3() * 0.96F, method_839(boneColor, var15.floatValue()));
+                }
+            }
+        });
+        var7.draw();
+        GL11.glLineWidth(1.0F);
+    }
+
+    private static void method_841(boolean var0) {
+        GlStateManager.pushMatrix();
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GlStateManager.disableFog();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.disableCull();
+        GlStateManager.depthMask(false);
+        GlStateManager.shadeModel(7425);
+        if (var0) {
+            GlStateManager.disableDepth();
+        }
+
+        GL11.glEnable(2848);
+        GL11.glHint(3154, 4354);
+    }
+
+    private static Matrix4f method_842(Matrix4f var0, WingFrame var1, float var2) {
+        WingParams var3 = var1.wingParams();
+        var0 = new Matrix4f(var0);
+        var0.translate(new Vector3f(var2 * var3.floatValue3(), 0.0F, var3.floatValue13()));
+        var0.rotate((float)Math.toRadians(var2 * var1.floatValue2()), new Vector3f(0.0F, 1.0F, 0.0F));
+        var0.rotate((float)Math.toRadians(var2 * var3.floatValue7()), new Vector3f(0.0F, 0.0F, 1.0F));
+        var0.rotate((float)Math.toRadians(var3.floatValue9()), new Vector3f(1.0F, 0.0F, 0.0F));
+        return var0;
+    }
+
+    private static void method_843(WorldRenderer var0, Matrix4f var1, float var2, float var3, WingPose[] var4, int var5, int var6) {
+        WorldRenderer var9 = var0;
+        int var7 = 0;
+
+        for (int var10 = 0; var10 < var4.length; var10 = var7) {
+            WingPose var8 = var4[var7];
+            WingPose var11 = var4[(var7 + 1) % var4.length];
+            method_848(var9, var1, 0.0F, 0.0F, var5);
+            method_848(var9, var1, var2 * var8.floatValue2() * var3, var8.floatValue3() * var3, method_839(var6, var8.floatValue()));
+            float var10002 = var2 * var11.floatValue2() * var3;
+            float var10003 = var11.floatValue3() * var3;
+            var7++;
+            method_848(var9, var1, var10002, var10003, method_839(var6, var11.floatValue()));
+        }
+    }
+
+    private static Matrix4f method_844(WingFrame var0, WingFeather var1, Vec3 var2) {
+        WingParams var5 = var0.wingParams();
+        Matrix4f var4 = new Matrix4f();
+        var4.translate(
+            new Vector3f((float)(var0.vec31().xCoord - var2.xCoord), (float)(var0.vec31().yCoord - var2.yCoord), (float)(var0.vec31().zCoord - var2.zCoord))
+        );
+        var4.rotate((float)Math.toRadians(180.0F - var0.floatValue()), new Vector3f(0.0F, 1.0F, 0.0F));
+        if (var5.floatValue10() != 0.0F || var5.floatValue4() != 0.0F) {
+            var4.translate(new Vector3f(0.0F, var5.floatValue10(), var5.floatValue4()));
+        }
+
+        if (var5.floatValue2() != 0.0F) {
+            var4.rotate((float)Math.toRadians(var5.floatValue2()), new Vector3f(1.0F, 0.0F, 0.0F));
+        }
+
+        if (var5.floatValue() != 0.0F) {
+            var4.rotate((float)Math.toRadians(var5.floatValue()), new Vector3f(0.0F, 1.0F, 0.0F));
+        }
+
+        if (var5.floatValue5() != 0.0F) {
+            var4.rotate((float)Math.toRadians(var5.floatValue5()), new Vector3f(0.0F, 0.0F, 1.0F));
+        }
+
+        var4.translate(new Vector3f(0.0F, var5.floatValue11() + var1.floatValue4(), var5.floatValue8() + var1.floatValue3()));
+        float var6 = var1.floatValue() * var5.floatValue12();
+        var4.scale(new Vector3f(var6, var6, var6));
+        return var4;
+    }
+
+    private static void method_845(List<WingFrame> var0, WingFeather var1, Vec3 var2, WingsRenderer.WingShape var3) {
+        Iterator var4;
+        for (Iterator var7 = var4 = var0.iterator(); var7.hasNext(); var7 = var4) {
+            WingFrame var8;
+            Matrix4f var6 = method_844(var8 = (WingFrame)var4.next(), var1, var2);
+            var3.method_852(var8, method_842(var6, var8, -1.0F), -1.0F);
+            var3.method_852(var8, method_842(var6, var8, 1.0F), 1.0F);
+        }
+    }
+
+    public void method_846(float var1, List<WingFrame> var2, WingFeather var3) {
+        var var4 = this;
+        if (this.flag2 && !var2.isEmpty()) {
+            Entity var9;
+            if ((var9 = mc.getRenderViewEntity()) != null) {
+                Vec3 var11 = new Vec3(
+                    var9.prevPosX + (var9.posX - var9.prevPosX) * var1,
+                    var9.prevPosY + (var9.posY - var9.prevPosY) * var1,
+                    var9.prevPosZ + (var9.posZ - var9.prevPosZ) * var1
+                );
+                int var10;
+                int var5 = method_836(var10 = var3.intValue() | 0xFF000000, -1, 0.28F);
+                int var6 = method_836(var10, -1, 0.55F);
+                int var7 = Math.round(255.0F * var3.floatValue2());
+
+                try {
+                    method_841(var3.flag());
+                    var4.method_837(var2, var3, var11, var5, var6, var7);
+                    var4.method_835(var2, var3, var11, var10, var7);
+                    var4.method_840(var2, var3, var11, var10, var5, var7);
+                    method_851();
+                } catch (Throwable var8) {
+                    this.flag2 = false;
+                    Onyx.LOGGER.warn("Wings renderer has been disabled after a render failure", var8);
+                }
+            }
+        }
+    }
+
+    private boolean method_847() {
+        if (!this.flag) {
+            this.flag = true;
+            this.shaderProgram = ShaderProgram.method_820("onyx_wings_aurora");
+        }
+
+        if (this.shaderProgram != null && this.shaderProgram.isFlag()) {
+            this.shaderProgram.method_817();
+            this.shaderProgram.method_821("uTime", (float)(System.nanoTime() % 180000000000L) / 1.0E9F);
+            this.shaderProgram.method_812("uResolution", mc.displayWidth, mc.displayHeight);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static void method_848(WorldRenderer var0, Matrix4f var1, float var2, float var3, int var4) {
+        Vector4f var6 = Matrix4f.transform(var1, new Vector4f(var2, var3, 0.0F, 1.0F), null);
+        var0.pos(var6.x, var6.y, var6.z).color(method_849(var4, 16), method_849(var4, 8), method_849(var4, 0), method_850(var4)).endVertex();
+    }
+
+    private static int method_849(int var0, int var1) {
+        return var0 >> var1 & 0xFF;
+    }
+
+    private static int method_850(int var0) {
+        return var0 >> 24 & 0xFF;
+    }
+
+    private static void method_851() {
+        GL11.glDisable(2848);
+        GlStateManager.shadeModel(7424);
+        GlStateManager.depthMask(true);
+        GlStateManager.enableDepth();
+        GlStateManager.enableCull();
+        GlStateManager.disableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.blendFunc(770, 771);
+        GlStateManager.disableFog();
+        GlStateManager.enableLighting();
+        GlStateManager.enableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.popMatrix();
+    }
+
+    private interface WingShape {
+        void method_852(WingFrame var1, Matrix4f var2, float var3);
+    }
+}
